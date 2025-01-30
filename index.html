@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Сканер</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        video {
+            width: 100%;
+            max-width: 400px;
+            border: 2px solid #333;
+            margin-bottom: 10px;
+        }
+        #output {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            min-height: 50px;
+            background: #f9f9f9;
+            text-align: left;
+            white-space: pre-wrap;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h2>QR Сканер</h2>
+    <video id="camera" autoplay></video>
+    <canvas id="canvas" hidden></canvas>
+    <div id="output">Тут появятся данные из QR-кода...</div>
+    <button id="copyButton">Скопировать всё</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <script>
+        const video = document.getElementById('camera');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const output = document.getElementById('output');
+        const copyButton = document.getElementById('copyButton');
+        let scannedData = new Set();
+
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                video.srcObject = stream;
+                scanQRCode();
+            } catch (error) {
+                console.error("Ошибка доступа к камере: ", error);
+                output.innerText = "Не удалось получить доступ к камере.";
+            }
+        }
+
+        function scanQRCode() {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+
+            if (code && !scannedData.has(code.data)) {
+                scannedData.add(code.data);
+                output.innerText = [...scannedData].join("\n");
+            }
+            requestAnimationFrame(scanQRCode);
+        }
+
+        copyButton.addEventListener('click', () => {
+            navigator.clipboard.writeText([...scannedData].join("\n")).then(() => {
+                alert("Данные скопированы!");
+            }).catch(err => {
+                console.error("Ошибка копирования: ", err);
+            });
+        });
+
+        startCamera();
+    </script>
+</body>
+</html>
