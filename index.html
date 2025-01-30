@@ -47,7 +47,7 @@
         const ctx = canvas.getContext('2d');
         const output = document.getElementById('output');
         const copyButton = document.getElementById('copyButton');
-        let scannedData = new Set();
+        let scannedData = [];
 
         async function startCamera() {
             try {
@@ -74,17 +74,21 @@
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
 
-                if (code && !scannedData.has(code.data)) {
-                    console.log("QR-код найден:", code.data);
-                    scannedData.add(code.data);
-                    output.innerText = [...scannedData].join("\n");
+                if (code) {
+                    let extractedData = code.data.includes("=") ? code.data.split("=")[1] : code.data; 
+                    
+                    if (!scannedData.includes(extractedData)) {
+                        console.log("QR-код найден:", extractedData);
+                        scannedData.push(extractedData);
+                        output.innerText = scannedData.join("\n");
+                    }
                 }
             }
             requestAnimationFrame(scanQRCode);
         }
 
         copyButton.addEventListener('click', () => {
-            navigator.clipboard.writeText([...scannedData].join("\n")).then(() => {
+            navigator.clipboard.writeText(scannedData.join("\n")).then(() => {
                 alert("Данные скопированы!");
             }).catch(err => {
                 console.error("Ошибка копирования:", err);
