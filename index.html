@@ -51,15 +51,18 @@
 
         async function startCamera() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "environment" } 
+                });
                 video.srcObject = stream;
+
                 video.onloadedmetadata = () => {
                     video.play();
                     requestAnimationFrame(scanQRCode);
                 };
             } catch (error) {
                 console.error("Ошибка доступа к камере:", error);
-                output.innerText = "Не удалось получить доступ к камере.";
+                output.innerText = "Не удалось получить доступ к камере. Разрешите доступ в настройках.";
             }
         }
 
