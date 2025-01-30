@@ -35,7 +35,7 @@
 </head>
 <body>
     <h2>QR Сканер</h2>
-    <video id="camera" autoplay></video>
+    <video id="camera" autoplay playsinline></video>
     <canvas id="canvas" hidden></canvas>
     <div id="output">Тут появятся данные из QR-кода...</div>
     <button id="copyButton">Скопировать всё</button>
@@ -53,23 +53,29 @@
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
                 video.srcObject = stream;
-                scanQRCode();
+                video.onloadedmetadata = () => {
+                    video.play();
+                    requestAnimationFrame(scanQRCode);
+                };
             } catch (error) {
-                console.error("Ошибка доступа к камере: ", error);
+                console.error("Ошибка доступа к камере:", error);
                 output.innerText = "Не удалось получить доступ к камере.";
             }
         }
 
         function scanQRCode() {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
 
-            if (code && !scannedData.has(code.data)) {
-                scannedData.add(code.data);
-                output.innerText = [...scannedData].join("\n");
+                if (code && !scannedData.has(code.data)) {
+                    console.log("QR-код найден:", code.data);
+                    scannedData.add(code.data);
+                    output.innerText = [...scannedData].join("\n");
+                }
             }
             requestAnimationFrame(scanQRCode);
         }
@@ -78,7 +84,7 @@
             navigator.clipboard.writeText([...scannedData].join("\n")).then(() => {
                 alert("Данные скопированы!");
             }).catch(err => {
-                console.error("Ошибка копирования: ", err);
+                console.error("Ошибка копирования:", err);
             });
         });
 
