@@ -11,20 +11,23 @@
             margin: 20px;
             background-color: #f4f4f9;
         }
-        .camera-container {
-            position: relative;
-            display: inline-block;
-        }
         video {
             width: 100%;
             max-width: 400px;
             border-radius: 10px;
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            margin-bottom: 10px;
+            position: relative;
         }
-        canvas {
+        #tracking-box {
             position: absolute;
-            top: 0;
-            left: 0;
+            top: 50%;
+            left: 50%;
+            width: 200px;
+            height: 200px;
+            border: 2px solid red;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
         }
         #output {
             margin-top: 10px;
@@ -37,7 +40,6 @@
         .scan-item {
             display: flex;
             align-items: center;
-            justify-content: space-between;
             background: #ffffff;
             padding: 10px;
             margin: 8px 0;
@@ -49,50 +51,54 @@
             transform: scale(1.02);
         }
         .scan-text {
+            flex-grow: 1;
             font-size: 16px;
             font-weight: bold;
             color: #333;
         }
-        .btn {
+        .scan-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        button {
             padding: 8px 12px;
             font-size: 14px;
             cursor: pointer;
             border: none;
             border-radius: 5px;
             transition: background 0.2s, transform 0.1s;
-            margin: 2px;
         }
-        .btn:hover {
+        button:hover {
             transform: scale(1.05);
         }
+        .btn-rel { background: #007bff; color: white; }
+        .btn-flip { background: #28a745; color: white; }
+        .btn-corpse { background: #dc3545; color: white; }
+        .btn-delete { background: #6c757d; color: white; }
         .btn-copy, .btn-flash {
             background: #ff9800;
             color: white;
             width: 100%;
             margin-top: 10px;
         }
-        .tracking-box {
-            position: absolute;
-            border: 2px solid red;
-            display: none;
-        }
     </style>
 </head>
 <body>
     <h2>QR Сканер</h2>
-    <div class="camera-container">
+    <div style="position: relative; display: inline-block;">
         <video id="camera" autoplay playsinline></video>
-        <canvas id="overlay"></canvas>
+        <div id="tracking-box"></div>
     </div>
+    <canvas id="canvas" hidden></canvas>
     <div id="output">Тут появятся данные из QR-кода...</div>
-    <button id="copyButton" class="btn btn-copy">Скопировать всё</button>
-    <button id="flashButton" class="btn btn-flash">Включить фонарик</button>
+    <button id="copyButton" class="btn-copy">Скопировать всё</button>
+    <button id="flashButton" class="btn-flash">Включить фонарик</button>
 
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
         const video = document.getElementById('camera');
-        const overlay = document.getElementById('overlay');
-        const ctx = overlay.getContext('2d');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
         const output = document.getElementById('output');
         const copyButton = document.getElementById('copyButton');
         const flashButton = document.getElementById('flashButton');
@@ -104,7 +110,7 @@
         async function startCamera() {
             try {
                 stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: "environment" } 
+                    video: { facingMode: "environment", frameRate: { ideal: 60 } }
                 });
                 video.srcObject = stream;
                 video.onloadedmetadata = () => {
@@ -114,44 +120,27 @@
                 };
             } catch (error) {
                 console.error("Ошибка доступа к камере:", error);
-                output.innerText = "Не удалось получить доступ к камере. Разрешите доступ в настройках.";
+                output.innerText = "Не удалось получить доступ к камере.";
             }
         }
 
         function scanQRCode() {
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                overlay.width = video.videoWidth;
-                overlay.height = video.videoHeight;
-                ctx.drawImage(video, 0, 0, overlay.width, overlay.height);
-                const imageData = ctx.getImageData(0, 0, overlay.width, overlay.height);
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
 
-                ctx.clearRect(0, 0, overlay.width, overlay.height); 
-
                 if (code) {
-                    drawTrackingBox(code.location);
-                    let extractedData = code.data.includes("=") ? code.data.split("=")[1] : code.data;
-
+                    let extractedData = code.data.includes("=") ? code.data.split("=")[1] : code.data; 
                     if (!scannedData.some(item => item.value === extractedData)) {
                         scannedData.push({ value: extractedData, suffix: "" });
                         renderScannedData();
                     }
                 }
             }
-            requestAnimationFrame(scanQRCode);
-        }
-
-        function drawTrackingBox(location) {
-            if (!location) return;
-            ctx.strokeStyle = "red";
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.moveTo(location.topLeftCorner.x, location.topLeftCorner.y);
-            ctx.lineTo(location.topRightCorner.x, location.topRightCorner.y);
-            ctx.lineTo(location.bottomRightCorner.x, location.bottomRightCorner.y);
-            ctx.lineTo(location.bottomLeftCorner.x, location.bottomLeftCorner.y);
-            ctx.closePath();
-            ctx.stroke();
+            setTimeout(() => requestAnimationFrame(scanQRCode), 10);
         }
 
         function renderScannedData() {
@@ -164,18 +153,40 @@
                 text.classList.add("scan-text");
                 text.textContent = item.suffix ? `${item.value} ${item.suffix}` : item.value;
 
+                const buttonsDiv = document.createElement("div");
+                buttonsDiv.classList.add("scan-buttons");
+
+                const addRelButton = createSuffixButton("Рел", "рел", "btn-rel", index);
+                const addFlipButton = createSuffixButton("Раскладушка", "раскладушка", "btn-flip", index);
+                const addCorpseButton = createSuffixButton("Труп", "труп", "btn-corpse", index);
                 const deleteButton = document.createElement("button");
                 deleteButton.textContent = "Удалить";
-                deleteButton.classList.add("btn");
+                deleteButton.classList.add("btn-delete");
                 deleteButton.onclick = () => {
                     scannedData.splice(index, 1);
                     renderScannedData();
                 };
 
+                buttonsDiv.appendChild(addRelButton);
+                buttonsDiv.appendChild(addFlipButton);
+                buttonsDiv.appendChild(addCorpseButton);
+                buttonsDiv.appendChild(deleteButton);
+
                 scanItem.appendChild(text);
-                scanItem.appendChild(deleteButton);
+                scanItem.appendChild(buttonsDiv);
                 output.appendChild(scanItem);
             });
+        }
+
+        function createSuffixButton(label, suffix, className, index) {
+            const button = document.createElement("button");
+            button.textContent = label;
+            button.classList.add(className);
+            button.onclick = () => {
+                scannedData[index].suffix = suffix;
+                renderScannedData();
+            };
+            return button;
         }
 
         copyButton.addEventListener('click', () => {
