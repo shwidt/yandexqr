@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Фото с Таймштампом и Геолокацией</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        video {
+            max-width: 100%;
+        }
+        canvas {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Сделать Фото с Таймштампом и Геолокацией</h1>
+    <video id="video" width="320" height="240" autoplay></video>
+    <br>
+    <button id="capture">Сделать Фото</button>
+    <canvas id="canvas" width="320" height="240"></canvas>
+    <br>
+    <img id="photo" alt="Фото с метками">
+    <p><strong>Время:</strong> <span id="time"></span></p>
+    <p><strong>Широта и долгота:</strong> <span id="coordinates"></span></p>
+    <p><strong>Улица:</strong> <span id="address"></span></p>
+
+    <script>
+        // Получаем доступ к камере
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const photo = document.getElementById('photo');
+        const captureButton = document.getElementById('capture');
+        const timeDisplay = document.getElementById('time');
+        const coordinatesDisplay = document.getElementById('coordinates');
+        const addressDisplay = document.getElementById('address');
+
+        // Получаем текущее время
+        function updateTime() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            timeDisplay.textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Получаем геолокацию
+        function getGeoLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(success, error);
+            } else {
+                coordinatesDisplay.textContent = "Геолокация не поддерживается этим браузером.";
+            }
+        }
+
+        function success(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            coordinatesDisplay.textContent = `Широта: ${latitude}, Долгота: ${longitude}`;
+            getAddress(latitude, longitude);
+        }
+
+        function error() {
+            coordinatesDisplay.textContent = "Не удалось получить геолокацию.";
+        }
+
+        function getAddress(latitude, longitude) {
+            const url = `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=YOUR-API-KEY`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.results && data.results.length > 0) {
+                        const address = data.results[0].formatted;
+                        addressDisplay.textContent = address;
+                    } else {
+                        addressDisplay.textContent = "Не удалось получить адрес.";
+                    }
+                })
+                .catch(error => {
+                    console.log(error);
+                    addressDisplay.textContent = "Ошибка получения адреса.";
+                });
+        }
+
+        // Инициализация камеры
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                console.error("Ошибка доступа к камере: ", err);
+            });
+
+        // Функция для захвата фото
+        captureButton.addEventListener('click', () => {
+            // Рисуем видео на canvas
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Наложение информации на изображение
+            const now = new Date();
+            const timeText = `Время: ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+            const geoText = `Широта: ${coordinatesDisplay.textContent}`;
+            const addressText = `Адрес: ${addressDisplay.textContent}`;
+
+            // Рисуем текст на изображении
+            ctx.font = '20px Arial';
+            ctx.fillStyle = 'white';
+            ctx.fillText(timeText, 10, 30);
+            ctx.fillText(geoText, 10, 60);
+            ctx.fillText(addressText, 10, 90);
+
+            // Сохраняем изображение
+            const dataURL = canvas.toDataURL('image/png');
+            photo.src = dataURL;
+        });
+
+        // Вызов функции для получения геолокации
+        getGeoLocation();
+    </script>
+</body>
+</html>
