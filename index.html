@@ -6,63 +6,62 @@
     <title>QR Сканер</title>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: Arial, sans-serif;
             text-align: center;
-            margin: 0;
-            padding: 0;
-            background: #f0f0f5;
-        }
-        .container {
-            max-width: 500px;
-            margin: 20px auto;
-            padding: 20px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
-        }
-        h2 {
-            margin-bottom: 15px;
-            color: #333;
+            margin: 20px;
+            background-color: #f4f4f9;
         }
         video {
             width: 100%;
+            max-width: 400px;
             border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            margin-bottom: 10px;
         }
         #output {
             margin-top: 10px;
             padding: 10px;
-            background: #ffffff;
+            background: #fff;
             border-radius: 8px;
             box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
             text-align: left;
         }
         .scan-item {
             display: flex;
-            justify-content: space-between;
+            flex-wrap: wrap;
             align-items: center;
-            background: #fff;
-            padding: 12px;
+            background: #ffffff;
+            padding: 10px;
             margin: 8px 0;
-            border-radius: 8px;
-            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
+            border-radius: 10px;
+            box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.15);
             transition: transform 0.2s;
         }
         .scan-item:hover {
             transform: scale(1.02);
         }
         .scan-text {
+            flex-grow: 1;
             font-size: 16px;
             font-weight: bold;
             color: #333;
-            flex-grow: 1;
         }
-        .btn-group {
+        .prefix {
+            font-size: 14px;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 5px;
+            margin-left: 8px;
+        }
+        .prefix-rel { background: #007bff; }
+        .prefix-flip { background: #28a745; }
+        .prefix-corpse { background: #dc3545; }
+        .scan-buttons {
             display: flex;
-            gap: 6px;
+            gap: 5px;
         }
         button {
-            padding: 8px 14px;
+            padding: 8px 12px;
             font-size: 14px;
             cursor: pointer;
             border: none;
@@ -76,23 +75,21 @@
         .btn-flip { background: #28a745; color: white; }
         .btn-corpse { background: #dc3545; color: white; }
         .btn-delete { background: #6c757d; color: white; }
-        .btn-main {
+        .btn-copy, .btn-flash {
             background: #ff9800;
             color: white;
             width: 100%;
-            margin-top: 12px;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>QR Сканер</h2>
-        <video id="camera" autoplay playsinline></video>
-        <canvas id="canvas" hidden></canvas>
-        <div id="output">Сканированные данные появятся здесь...</div>
-        <button id="copyButton" class="btn-main">Скопировать всё</button>
-        <button id="flashButton" class="btn-main">Включить фонарик</button>
-    </div>
+    <h2>QR Сканер</h2>
+    <video id="camera" autoplay playsinline></video>
+    <canvas id="canvas" hidden></canvas>
+    <div id="output">Тут появятся данные из QR-кода...</div>
+    <button id="copyButton" class="btn-copy">Скопировать всё</button>
+    <button id="flashButton" class="btn-flash">Включить фонарик</button>
 
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
@@ -116,11 +113,11 @@
                 video.onloadedmetadata = () => {
                     video.play();
                     track = stream.getVideoTracks()[0]; 
-                    scanQRCode();
+                    requestAnimationFrame(scanQRCode);
                 };
             } catch (error) {
                 console.error("Ошибка доступа к камере:", error);
-                output.innerText = "Не удалось получить доступ к камере.";
+                output.innerText = "Не удалось получить доступ к камере. Разрешите доступ в настройках.";
             }
         }
 
@@ -141,7 +138,7 @@
                     }
                 }
             }
-            setTimeout(scanQRCode, 50); // Ускорение сканирования (обновление каждые 50 мс)
+            requestAnimationFrame(scanQRCode);
         }
 
         function renderScannedData() {
@@ -155,7 +152,7 @@
                 text.textContent = item.suffix ? `${item.value} ${item.suffix}` : item.value;
 
                 const buttonsDiv = document.createElement("div");
-                buttonsDiv.classList.add("btn-group");
+                buttonsDiv.classList.add("scan-buttons");
 
                 const addRelButton = createSuffixButton("Рел", "рел", "btn-rel", index);
                 const addFlipButton = createSuffixButton("Раскладушка", "раскладушка", "btn-flip", index);
@@ -168,8 +165,13 @@
                     renderScannedData();
                 };
 
-                buttonsDiv.append(addRelButton, addFlipButton, addCorpseButton, deleteButton);
-                scanItem.append(text, buttonsDiv);
+                buttonsDiv.appendChild(addRelButton);
+                buttonsDiv.appendChild(addFlipButton);
+                buttonsDiv.appendChild(addCorpseButton);
+                buttonsDiv.appendChild(deleteButton);
+
+                scanItem.appendChild(text);
+                scanItem.appendChild(buttonsDiv);
                 output.appendChild(scanItem);
             });
         }
@@ -193,13 +195,13 @@
         });
 
         flashButton.addEventListener('click', async () => {
-            if (!track) return alert("Фонарик не поддерживается.");
+            if (!track) return alert("Фонарик не поддерживается на этом устройстве.");
             try {
                 isFlashOn = !isFlashOn;
                 await track.applyConstraints({ advanced: [{ torch: isFlashOn }] });
                 flashButton.innerText = isFlashOn ? "Выключить фонарик" : "Включить фонарик";
             } catch {
-                alert("Ошибка фонарика.");
+                alert("Ошибка управления фонариком.");
             }
         });
 
