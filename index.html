@@ -140,10 +140,11 @@
         async function getTimestampAndGeo() {
             return new Promise((resolve, reject) => {
                 if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(position => {
+                    navigator.geolocation.getCurrentPosition(async (position) => {
                         const geoData = position.coords;
                         const timestamp = new Date().toLocaleString(); // Текущее время с устройства
-                        resolve({ timestamp, geoData });
+                        const street = await getStreet(geoData.latitude, geoData.longitude); // Получение улицы
+                        resolve({ timestamp, geoData, street });
                     }, (error) => {
                         reject("Не удалось получить геолокацию.");
                     });
@@ -153,18 +154,25 @@
             });
         }
 
+        // Функция для получения названия улицы
+        async function getStreet(latitude, longitude) {
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+            const data = await response.json();
+            return data.address.road || "Неизвестная улица";
+        }
+
         // Функция для съемки фото
         async function takePhoto() {
             try {
-                const { timestamp, geoData } = await getTimestampAndGeo();
+                const { timestamp, geoData, street } = await getTimestampAndGeo();
                 const photoCanvas = document.createElement('canvas');
                 const photoCtx = photoCanvas.getContext('2d');
                 photoCanvas.width = video.videoWidth;
                 photoCanvas.height = video.videoHeight;
                 photoCtx.drawImage(video, 0, 0, photoCanvas.width, photoCanvas.height);
 
-                // Добавим таймштамп и геолокацию
-                const text = `${timestamp}\nLat: ${geoData.latitude}, Lon: ${geoData.longitude}`;
+                // Добавим таймштамп, геолокацию и улицу
+                const text = `${timestamp}\nLat: ${geoData.latitude}, Lon: ${geoData.longitude}\nУлица: ${street}`;
                 photoCtx.font = "20px Arial";
                 photoCtx.fillStyle = "white";
                 photoCtx.fillText(text, 20, photoCanvas.height - 40);
