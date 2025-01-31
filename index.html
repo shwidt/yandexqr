@@ -25,15 +25,19 @@
         }
         .scan-item {
             display: flex;
-            justify-content: space-between;
+            flex-wrap: wrap;
             align-items: center;
             background: #e3e3e3;
             padding: 5px;
             margin-top: 5px;
             border-radius: 5px;
         }
+        .scan-item span {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
         .scan-item button {
-            margin-left: 10px;
+            margin: 2px;
             padding: 5px;
             font-size: 14px;
             cursor: pointer;
@@ -96,8 +100,8 @@
                 if (code) {
                     let extractedData = code.data.includes("=") ? code.data.split("=")[1] : code.data; 
 
-                    if (!scannedData.includes(extractedData)) {
-                        scannedData.push(extractedData);
+                    if (!scannedData.some(item => item.value === extractedData)) {
+                        scannedData.push({ value: extractedData, prefix: "" });
                         renderScannedData();
                     }
                 }
@@ -107,28 +111,46 @@
 
         function renderScannedData() {
             output.innerHTML = ""; 
-            scannedData.forEach((data, index) => {
-                const item = document.createElement("div");
-                item.classList.add("scan-item");
+            scannedData.forEach((item, index) => {
+                const scanItem = document.createElement("div");
+                scanItem.classList.add("scan-item");
 
                 const text = document.createElement("span");
-                text.textContent = data;
+                text.textContent = item.prefix ? `${item.prefix} ${item.value}` : item.value;
 
+                const addRelButton = createPrefixButton("Рел", "рел", index);
+                const addFlipButton = createPrefixButton("Раскладушка", "раскладушка", index);
+                const addCorpseButton = createPrefixButton("Труп", "труп", index);
                 const deleteButton = document.createElement("button");
+
                 deleteButton.textContent = "Удалить";
                 deleteButton.onclick = () => {
                     scannedData.splice(index, 1);
                     renderScannedData();
                 };
 
-                item.appendChild(text);
-                item.appendChild(deleteButton);
-                output.appendChild(item);
+                scanItem.appendChild(text);
+                scanItem.appendChild(addRelButton);
+                scanItem.appendChild(addFlipButton);
+                scanItem.appendChild(addCorpseButton);
+                scanItem.appendChild(deleteButton);
+                output.appendChild(scanItem);
             });
         }
 
+        function createPrefixButton(label, prefix, index) {
+            const button = document.createElement("button");
+            button.textContent = label;
+            button.onclick = () => {
+                scannedData[index].prefix = prefix;
+                renderScannedData();
+            };
+            return button;
+        }
+
         copyButton.addEventListener('click', () => {
-            navigator.clipboard.writeText(scannedData.join("\n")).then(() => {
+            const textToCopy = scannedData.map(item => item.prefix ? `${item.prefix} ${item.value}` : item.value).join("\n");
+            navigator.clipboard.writeText(textToCopy).then(() => {
                 alert("Данные скопированы!");
             }).catch(err => {
                 console.error("Ошибка копирования:", err);
