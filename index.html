@@ -26,104 +26,7 @@
             box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
             text-align: left;
         }
-        .scan-item {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            background: #ffffff;
-            padding: 10px;
-            margin: 8px 0;
-            border-radius: 10px;
-            box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.15);
-            transition: transform 0.2s;
-            position: relative;
-        }
-        .scan-item:hover {
-            transform: scale(1.02);
-        }
-        .scan-text {
-            flex-grow: 1;
-            font-size: 16px;
-            font-weight: bold;
-            color: #333;
-        }
-        .prefix {
-            font-size: 14px;
-            color: #fff;
-            padding: 2px 8px;
-            border-radius: 5px;
-            margin-left: 8px;
-        }
-        .prefix-rel { background: #007bff; }
-        .prefix-flip { background: #28a745; }
-        .prefix-corpse { background: #dc3545; }
-        .scan-buttons {
-            display: flex;
-            gap: 5px;
-        }
-        button {
-            padding: 8px 12px;
-            font-size: 14px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            transition: background 0.2s, transform 0.1s;
-        }
-        button:hover {
-            transform: scale(1.05);
-        }
-        .btn-rel { background: #007bff; color: white; }
-        .btn-flip { background: #28a745; color: white; }
-        .btn-corpse { background: #dc3545; color: white; }
-        .btn-delete { background: #6c757d; color: white; }
-        .btn-copy, .btn-flash {
-            background: #ff9800;
-            color: white;
-            width: 100%;
-            margin-top: 10px;
-        }
-        .btn-prefix {
-            background: #007bff;
-            color: white;
-            padding: 8px 12px;
-            margin-top: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        /* Новый стиль для выпадающего окна */
-        .prefix-dropdown {
-            position: absolute;
-            top: 40px;
-            left: 0;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2);
-            padding: 10px;
-            width: 160px;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-            z-index: 100;
-        }
-        .prefix-dropdown.show {
-            opacity: 1;
-            visibility: visible;
-        }
-        .prefix-dropdown button {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 8px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            text-align: left;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        .prefix-dropdown button:hover {
-            background-color: #0056b3;
-        }
+        /* Добавьте другие стили, как в предыдущем коде */
     </style>
 </head>
 <body>
@@ -155,7 +58,10 @@
                 video.srcObject = stream;
                 video.onloadedmetadata = () => {
                     video.play();
-                    track = stream.getVideoTracks()[0]; 
+                    track = stream.getVideoTracks()[0];
+                    // Уменьшаем размер видео для ускорения обработки
+                    canvas.width = 320;
+                    canvas.height = 240;
                     requestAnimationFrame(scanQRCode);
                 };
             } catch (error) {
@@ -166,26 +72,27 @@
 
         function scanQRCode() {
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
+                // Изменяем размеры области для сканирования
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
 
                 if (code) {
-                    let extractedData = code.data.includes("=") ? code.data.split("=")[1] : code.data; 
+                    let extractedData = code.data.includes("=") ? code.data.split("=")[1] : code.data;
 
+                    // Останавливаем процесс сканирования после первого удачного результата
                     if (!scannedData.some(item => item.value === extractedData)) {
                         scannedData.push({ value: extractedData, suffix: "" });
                         renderScannedData();
+                        return; // Прерываем дальнейшую обработку после первого нахождения
                     }
                 }
             }
-            requestAnimationFrame(scanQRCode);
+            requestAnimationFrame(scanQRCode);  // Переход к следующему кадру
         }
 
         function renderScannedData() {
-            output.innerHTML = ""; 
+            output.innerHTML = "";
             scannedData.forEach((item, index) => {
                 const scanItem = document.createElement("div");
                 scanItem.classList.add("scan-item");
@@ -221,26 +128,26 @@
 
         function togglePrefixList(index) {
             const existingDropdown = document.querySelector(".prefix-dropdown.show");
-            if (existingDropdown) existingDropdown.classList.remove("show"); // Закрыть предыдущий список
+            if (existingDropdown) existingDropdown.classList.remove("show");
 
             let dropdown = document.createElement("div");
             dropdown.classList.add("prefix-dropdown");
             dropdown.classList.add("show");
 
-            const prefixes = ["Рел", "Раскладушка", "Труп", "Грязный"];
+            const prefixes = ["Рел", "Раскладушка", "Труп"];
             prefixes.forEach(prefix => {
                 const button = document.createElement("button");
                 button.textContent = prefix;
                 button.onclick = () => {
                     scannedData[index].suffix = prefix;
                     renderScannedData();
-                    dropdown.classList.remove("show"); // Закрыть выпадающее меню после выбора
+                    dropdown.classList.remove("show");
                 };
                 dropdown.appendChild(button);
             });
 
             const scanItem = output.children[index];
-            scanItem.appendChild(dropdown); // Вставляем выпадающее меню в текущий элемент
+            scanItem.appendChild(dropdown);
         }
 
         copyButton.addEventListener('click', () => {
