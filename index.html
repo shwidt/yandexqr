@@ -36,6 +36,7 @@
             border-radius: 10px;
             box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.15);
             transition: transform 0.2s;
+            position: relative;
         }
         .scan-item:hover {
             transform: scale(1.02);
@@ -87,6 +88,41 @@
             padding: 8px 12px;
             margin-top: 10px;
             border-radius: 5px;
+            cursor: pointer;
+        }
+        /* Новый стиль для выпадающего окна */
+        .prefix-dropdown {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            width: 160px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 100;
+        }
+        .prefix-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .prefix-dropdown button {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 8px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-align: left;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .prefix-dropdown button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
@@ -161,13 +197,11 @@
                 const buttonsDiv = document.createElement("div");
                 buttonsDiv.classList.add("scan-buttons");
 
-                // Кнопка выбора префикса для этого элемента
                 const addPrefixButton = document.createElement("button");
                 addPrefixButton.classList.add("btn-prefix");
                 addPrefixButton.textContent = "Добавить префикс";
                 addPrefixButton.onclick = () => togglePrefixList(index);
 
-                // Кнопка удаления
                 const deleteButton = document.createElement("button");
                 deleteButton.textContent = "Удалить";
                 deleteButton.classList.add("btn-delete");
@@ -185,31 +219,28 @@
             });
         }
 
-        // Отображение списка префиксов
         function togglePrefixList(index) {
-            const prefixList = document.createElement("div");
-            prefixList.style.position = "absolute";
-            prefixList.style.background = "white";
-            prefixList.style.boxShadow = "0px 2px 5px rgba(0, 0, 0, 0.2)";
-            prefixList.style.borderRadius = "8px";
-            prefixList.style.marginTop = "10px";
-            prefixList.style.padding = "10px";
-            prefixList.style.width = "200px";
-            
+            const existingDropdown = document.querySelector(".prefix-dropdown.show");
+            if (existingDropdown) existingDropdown.classList.remove("show"); // Закрыть предыдущий список
+
+            let dropdown = document.createElement("div");
+            dropdown.classList.add("prefix-dropdown");
+            dropdown.classList.add("show");
+
             const prefixes = ["Рел", "Раскладушка", "Труп"];
             prefixes.forEach(prefix => {
                 const button = document.createElement("button");
                 button.textContent = prefix;
-                button.classList.add(`prefix-${prefix.toLowerCase()}`);
                 button.onclick = () => {
                     scannedData[index].suffix = prefix;
                     renderScannedData();
-                    prefixList.remove();  // Убираем список после выбора
+                    dropdown.classList.remove("show"); // Закрыть выпадающее меню после выбора
                 };
-                prefixList.appendChild(button);
+                dropdown.appendChild(button);
             });
 
-            document.body.appendChild(prefixList);
+            const scanItem = output.children[index];
+            scanItem.appendChild(dropdown); // Вставляем выпадающее меню в текущий элемент
         }
 
         copyButton.addEventListener('click', () => {
