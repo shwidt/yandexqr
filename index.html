@@ -101,7 +101,7 @@
                     let extractedData = code.data.includes("=") ? code.data.split("=")[1] : code.data; 
 
                     if (!scannedData.some(item => item.value === extractedData)) {
-                        scannedData.push({ value: extractedData, prefix: "" });
+                        scannedData.push({ value: extractedData, suffix: "" });
                         renderScannedData();
                     }
                 }
@@ -116,11 +116,11 @@
                 scanItem.classList.add("scan-item");
 
                 const text = document.createElement("span");
-                text.textContent = item.prefix ? `${item.prefix} ${item.value}` : item.value;
+                text.textContent = item.suffix ? `${item.value} ${item.suffix}` : item.value;
 
-                const addRelButton = createPrefixButton("Рел", "рел", index);
-                const addFlipButton = createPrefixButton("Раскладушка", "раскладушка", index);
-                const addCorpseButton = createPrefixButton("Труп", "труп", index);
+                const addRelButton = createSuffixButton("Рел", "рел", index);
+                const addFlipButton = createSuffixButton("Раскладушка", "раскладушка", index);
+                const addCorpseButton = createSuffixButton("Труп", "труп", index);
                 const deleteButton = document.createElement("button");
 
                 deleteButton.textContent = "Удалить";
@@ -138,18 +138,18 @@
             });
         }
 
-        function createPrefixButton(label, prefix, index) {
+        function createSuffixButton(label, suffix, index) {
             const button = document.createElement("button");
             button.textContent = label;
             button.onclick = () => {
-                scannedData[index].prefix = prefix;
+                scannedData[index].suffix = suffix;
                 renderScannedData();
             };
             return button;
         }
 
         copyButton.addEventListener('click', () => {
-            const textToCopy = scannedData.map(item => item.prefix ? `${item.prefix} ${item.value}` : item.value).join("\n");
+            const textToCopy = scannedData.map(item => item.suffix ? `${item.value} ${item.suffix}` : item.value).join("\n");
             navigator.clipboard.writeText(textToCopy).then(() => {
                 alert("Данные скопированы!");
             }).catch(err => {
