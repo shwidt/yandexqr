@@ -20,10 +20,23 @@
             margin-top: 10px;
             padding: 10px;
             border: 1px solid #ccc;
-            min-height: 50px;
             background: #f9f9f9;
             text-align: left;
-            white-space: pre-wrap;
+        }
+        .scan-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #e3e3e3;
+            padding: 5px;
+            margin-top: 5px;
+            border-radius: 5px;
+        }
+        .scan-item button {
+            margin-left: 10px;
+            padding: 5px;
+            font-size: 14px;
+            cursor: pointer;
         }
         button {
             margin-top: 10px;
@@ -39,6 +52,7 @@
     <canvas id="canvas" hidden></canvas>
     <div id="output">Тут появятся данные из QR-кода...</div>
     <button id="copyButton">Скопировать всё</button>
+    <button id="flashButton">Включить фонарик</button>
 
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
@@ -47,17 +61,22 @@
         const ctx = canvas.getContext('2d');
         const output = document.getElementById('output');
         const copyButton = document.getElementById('copyButton');
+        const flashButton = document.getElementById('flashButton');
         let scannedData = [];
+        let stream = null;
+        let track = null;
+        let isFlashOn = false;
 
         async function startCamera() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
+                stream = await navigator.mediaDevices.getUserMedia({ 
                     video: { facingMode: "environment" } 
                 });
                 video.srcObject = stream;
 
                 video.onloadedmetadata = () => {
                     video.play();
+                    track = stream.getVideoTracks()[0]; 
                     requestAnimationFrame(scanQRCode);
                 };
             } catch (error) {
@@ -76,15 +95,36 @@
 
                 if (code) {
                     let extractedData = code.data.includes("=") ? code.data.split("=")[1] : code.data; 
-                    
+
                     if (!scannedData.includes(extractedData)) {
-                        console.log("QR-код найден:", extractedData);
                         scannedData.push(extractedData);
-                        output.innerText = scannedData.join("\n");
+                        renderScannedData();
                     }
                 }
             }
             requestAnimationFrame(scanQRCode);
+        }
+
+        function renderScannedData() {
+            output.innerHTML = ""; 
+            scannedData.forEach((data, index) => {
+                const item = document.createElement("div");
+                item.classList.add("scan-item");
+
+                const text = document.createElement("span");
+                text.textContent = data;
+
+                const deleteButton = document.createElement("button");
+                deleteButton.textContent = "Удалить";
+                deleteButton.onclick = () => {
+                    scannedData.splice(index, 1);
+                    renderScannedData();
+                };
+
+                item.appendChild(text);
+                item.appendChild(deleteButton);
+                output.appendChild(item);
+            });
         }
 
         copyButton.addEventListener('click', () => {
@@ -93,6 +133,19 @@
             }).catch(err => {
                 console.error("Ошибка копирования:", err);
             });
+        });
+
+        flashButton.addEventListener('click', async () => {
+            if (!track) return alert("Фонарик не поддерживается на этом устройстве.");
+            
+            try {
+                isFlashOn = !isFlashOn;
+                await track.applyConstraints({ advanced: [{ torch: isFlashOn }] });
+                flashButton.innerText = isFlashOn ? "Выключить фонарик" : "Включить фонарик";
+            } catch (error) {
+                console.error("Ошибка управления фонариком:", error);
+                alert("Не удалось включить фонарик. Возможно, ваш браузер или устройство не поддерживает эту функцию.");
+            }
         });
 
         startCamera();
