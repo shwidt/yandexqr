@@ -36,6 +36,7 @@
             border-radius: 10px;
             box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.15);
             transition: transform 0.2s;
+            position: relative;
         }
         .scan-item:hover {
             transform: scale(1.02);
@@ -81,25 +82,47 @@
             width: 100%;
             margin-top: 10px;
         }
-
-        /* Стили для выпадающего списка */
-        .prefix-dropdown {
-            display: none;
-            position: absolute;
-            background: #fff;
+        .btn-prefix {
+            background: #007bff;
+            color: white;
+            padding: 8px 12px;
+            margin-top: 10px;
             border-radius: 5px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
+            cursor: pointer;
         }
-
+        /* Новый стиль для выпадающего окна */
+        .prefix-dropdown {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            width: 160px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 100;
+        }
         .prefix-dropdown.show {
-            display: block;
+            opacity: 1;
+            visibility: visible;
         }
-
         .prefix-dropdown button {
             width: 100%;
             padding: 8px;
+            margin-bottom: 8px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
             text-align: left;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .prefix-dropdown button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
@@ -132,10 +155,7 @@
                 video.srcObject = stream;
                 video.onloadedmetadata = () => {
                     video.play();
-                    track = stream.getVideoTracks()[0];
-                    // Уменьшаем размер видео для ускорения обработки
-                    canvas.width = 320;
-                    canvas.height = 240;
+                    track = stream.getVideoTracks()[0]; 
                     requestAnimationFrame(scanQRCode);
                 };
             } catch (error) {
@@ -146,27 +166,26 @@
 
         function scanQRCode() {
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                // Изменяем размеры области для сканирования
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
 
                 if (code) {
-                    let extractedData = code.data.includes("=") ? code.data.split("=")[1] : code.data;
+                    let extractedData = code.data.includes("=") ? code.data.split("=")[1] : code.data; 
 
-                    // Останавливаем процесс сканирования после первого удачного результата
                     if (!scannedData.some(item => item.value === extractedData)) {
                         scannedData.push({ value: extractedData, suffix: "" });
                         renderScannedData();
-                        return; // Прерываем дальнейшую обработку после первого нахождения
                     }
                 }
             }
-            requestAnimationFrame(scanQRCode);  // Переход к следующему кадру
+            requestAnimationFrame(scanQRCode);
         }
 
         function renderScannedData() {
-            output.innerHTML = "";
+            output.innerHTML = ""; 
             scannedData.forEach((item, index) => {
                 const scanItem = document.createElement("div");
                 scanItem.classList.add("scan-item");
@@ -202,7 +221,7 @@
 
         function togglePrefixList(index) {
             const existingDropdown = document.querySelector(".prefix-dropdown.show");
-            if (existingDropdown) existingDropdown.classList.remove("show");
+            if (existingDropdown) existingDropdown.classList.remove("show"); // Закрыть предыдущий список
 
             let dropdown = document.createElement("div");
             dropdown.classList.add("prefix-dropdown");
@@ -215,13 +234,13 @@
                 button.onclick = () => {
                     scannedData[index].suffix = prefix;
                     renderScannedData();
-                    dropdown.classList.remove("show");
+                    dropdown.classList.remove("show"); // Закрыть выпадающее меню после выбора
                 };
                 dropdown.appendChild(button);
             });
 
             const scanItem = output.children[index];
-            scanItem.appendChild(dropdown);
+            scanItem.appendChild(dropdown); // Вставляем выпадающее меню в текущий элемент
         }
 
         copyButton.addEventListener('click', () => {
