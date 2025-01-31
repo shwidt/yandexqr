@@ -26,103 +26,18 @@
             box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
             text-align: left;
         }
-        .scan-item {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            background: #ffffff;
-            padding: 10px;
-            margin: 8px 0;
-            border-radius: 10px;
-            box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.15);
-            transition: transform 0.2s;
-            position: relative;
-        }
-        .scan-item:hover {
-            transform: scale(1.02);
-        }
-        .scan-text {
-            flex-grow: 1;
-            font-size: 16px;
-            font-weight: bold;
-            color: #333;
-        }
-        .prefix {
-            font-size: 14px;
-            color: #fff;
-            padding: 2px 8px;
-            border-radius: 5px;
-            margin-left: 8px;
-        }
-        .prefix-rel { background: #007bff; }
-        .prefix-flip { background: #28a745; }
-        .prefix-corpse { background: #dc3545; }
-        .scan-buttons {
-            display: flex;
-            gap: 5px;
-        }
-        button {
-            padding: 8px 12px;
-            font-size: 14px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            transition: background 0.2s, transform 0.1s;
-        }
-        button:hover {
-            transform: scale(1.05);
-        }
-        .btn-rel { background: #007bff; color: white; }
-        .btn-flip { background: #28a745; color: white; }
-        .btn-corpse { background: #dc3545; color: white; }
-        .btn-delete { background: #6c757d; color: white; }
-        .btn-copy, .btn-flash {
-            background: #ff9800;
-            color: white;
-            width: 100%;
+        /* Стиль кнопки фото */
+        #photoButton {
             margin-top: 10px;
-        }
-        .btn-prefix {
-            background: #007bff;
-            color: white;
-            padding: 8px 12px;
-            margin-top: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        /* Новый стиль для выпадающего окна */
-        .prefix-dropdown {
-            position: absolute;
-            top: 40px;
-            left: 0;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2);
-            padding: 10px;
-            width: 160px;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-            z-index: 100;
-        }
-        .prefix-dropdown.show {
-            opacity: 1;
-            visibility: visible;
-        }
-        .prefix-dropdown button {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 8px;
-            background-color: #007bff;
+            padding: 10px 20px;
+            background-color: #ff9800;
             color: white;
             border: none;
             border-radius: 5px;
-            text-align: left;
-            font-size: 14px;
             cursor: pointer;
         }
-        .prefix-dropdown button:hover {
-            background-color: #0056b3;
+        #photoButton:hover {
+            background-color: #e68900;
         }
     </style>
 </head>
@@ -133,6 +48,7 @@
     <div id="output">Тут появятся данные из QR-кода...</div>
     <button id="copyButton" class="btn-copy">Скопировать всё</button>
     <button id="flashButton" class="btn-flash">Включить фонарик</button>
+    <button id="photoButton">Снять фото</button> <!-- Кнопка для съемки фото -->
 
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
@@ -142,6 +58,7 @@
         const output = document.getElementById('output');
         const copyButton = document.getElementById('copyButton');
         const flashButton = document.getElementById('flashButton');
+        const photoButton = document.getElementById('photoButton');  // Кнопка фото
         let scannedData = [];
         let stream = null;
         let track = null;
@@ -219,29 +136,51 @@
             });
         }
 
-        function togglePrefixList(index) {
-            const existingDropdown = document.querySelector(".prefix-dropdown.show");
-            if (existingDropdown) existingDropdown.classList.remove("show"); // Закрыть предыдущий список
-
-            let dropdown = document.createElement("div");
-            dropdown.classList.add("prefix-dropdown");
-            dropdown.classList.add("show");
-
-            const prefixes = ["Рел", "Раскладушка", "Труп", "Грязный"];
-            prefixes.forEach(prefix => {
-                const button = document.createElement("button");
-                button.textContent = prefix;
-                button.onclick = () => {
-                    scannedData[index].suffix = prefix;
-                    renderScannedData();
-                    dropdown.classList.remove("show"); // Закрыть выпадающее меню после выбора
-                };
-                dropdown.appendChild(button);
+        // Функция для получения таймштампа с геолокацией
+        async function getTimestampAndGeo() {
+            return new Promise((resolve, reject) => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(position => {
+                        const geoData = position.coords;
+                        const timestamp = new Date().toLocaleString(); // Текущее время с устройства
+                        resolve({ timestamp, geoData });
+                    }, (error) => {
+                        reject("Не удалось получить геолокацию.");
+                    });
+                } else {
+                    reject("Геолокация не поддерживается.");
+                }
             });
-
-            const scanItem = output.children[index];
-            scanItem.appendChild(dropdown); // Вставляем выпадающее меню в текущий элемент
         }
+
+        // Функция для съемки фото
+        async function takePhoto() {
+            try {
+                const { timestamp, geoData } = await getTimestampAndGeo();
+                const photoCanvas = document.createElement('canvas');
+                const photoCtx = photoCanvas.getContext('2d');
+                photoCanvas.width = video.videoWidth;
+                photoCanvas.height = video.videoHeight;
+                photoCtx.drawImage(video, 0, 0, photoCanvas.width, photoCanvas.height);
+
+                // Добавим таймштамп и геолокацию
+                const text = `${timestamp}\nLat: ${geoData.latitude}, Lon: ${geoData.longitude}`;
+                photoCtx.font = "20px Arial";
+                photoCtx.fillStyle = "white";
+                photoCtx.fillText(text, 20, photoCanvas.height - 40);
+
+                // Сохранить или показать фото
+                const photoURL = photoCanvas.toDataURL('image/png');
+                const img = new Image();
+                img.src = photoURL;
+                document.body.appendChild(img); // Покажем фото на странице
+            } catch (error) {
+                alert(error);
+            }
+        }
+
+        // Обработчик кнопки для съемки фото
+        photoButton.addEventListener('click', takePhoto);
 
         copyButton.addEventListener('click', () => {
             const textToCopy = scannedData.map(item => item.suffix ? `${item.value} ${item.suffix}` : item.value).join("\n");
