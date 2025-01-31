@@ -81,6 +81,13 @@
             width: 100%;
             margin-top: 10px;
         }
+        .btn-prefix {
+            background: #007bff;
+            color: white;
+            padding: 8px 12px;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -154,9 +161,13 @@
                 const buttonsDiv = document.createElement("div");
                 buttonsDiv.classList.add("scan-buttons");
 
-                const addRelButton = createSuffixButton("Рел", "рел", "btn-rel", index);
-                const addFlipButton = createSuffixButton("Раскладушка", "раскладушка", "btn-flip", index);
-                const addCorpseButton = createSuffixButton("Труп", "труп", "btn-corpse", index);
+                // Кнопка выбора префикса для этого элемента
+                const addPrefixButton = document.createElement("button");
+                addPrefixButton.classList.add("btn-prefix");
+                addPrefixButton.textContent = "Добавить префикс";
+                addPrefixButton.onclick = () => togglePrefixList(index);
+
+                // Кнопка удаления
                 const deleteButton = document.createElement("button");
                 deleteButton.textContent = "Удалить";
                 deleteButton.classList.add("btn-delete");
@@ -165,9 +176,7 @@
                     renderScannedData();
                 };
 
-                buttonsDiv.appendChild(addRelButton);
-                buttonsDiv.appendChild(addFlipButton);
-                buttonsDiv.appendChild(addCorpseButton);
+                buttonsDiv.appendChild(addPrefixButton);
                 buttonsDiv.appendChild(deleteButton);
 
                 scanItem.appendChild(text);
@@ -176,15 +185,31 @@
             });
         }
 
-        function createSuffixButton(label, suffix, className, index) {
-            const button = document.createElement("button");
-            button.textContent = label;
-            button.classList.add(className);
-            button.onclick = () => {
-                scannedData[index].suffix = suffix;
-                renderScannedData();
-            };
-            return button;
+        // Отображение списка префиксов
+        function togglePrefixList(index) {
+            const prefixList = document.createElement("div");
+            prefixList.style.position = "absolute";
+            prefixList.style.background = "white";
+            prefixList.style.boxShadow = "0px 2px 5px rgba(0, 0, 0, 0.2)";
+            prefixList.style.borderRadius = "8px";
+            prefixList.style.marginTop = "10px";
+            prefixList.style.padding = "10px";
+            prefixList.style.width = "200px";
+            
+            const prefixes = ["Рел", "Раскладушка", "Труп"];
+            prefixes.forEach(prefix => {
+                const button = document.createElement("button");
+                button.textContent = prefix;
+                button.classList.add(`prefix-${prefix.toLowerCase()}`);
+                button.onclick = () => {
+                    scannedData[index].suffix = prefix;
+                    renderScannedData();
+                    prefixList.remove();  // Убираем список после выбора
+                };
+                prefixList.appendChild(button);
+            });
+
+            document.body.appendChild(prefixList);
         }
 
         copyButton.addEventListener('click', () => {
