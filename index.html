@@ -29,6 +29,7 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
             max-width: 500px;
             width: 100%;
+            position: relative;
         }
 
         h2 {
@@ -37,12 +38,33 @@
             font-weight: 700;
         }
 
-        video {
+        .video-container {
+            position: relative;
             width: 100%;
             max-width: 400px;
+            margin: 0 auto;
+        }
+
+        video {
+            width: 100%;
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            margin-bottom: 20px;
+        }
+
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        #highlight {
+            position: absolute;
+            border: 3px solid #00ff00;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+            display: none;
         }
 
         #output {
@@ -182,7 +204,12 @@
 <body>
     <div class="container">
         <h2>QR Сканер</h2>
-        <video id="camera" autoplay playsinline></video>
+        <div class="video-container">
+            <video id="camera" autoplay playsinline></video>
+            <div id="overlay">
+                <div id="highlight"></div>
+            </div>
+        </div>
         <canvas id="canvas" hidden></canvas>
         <div id="output">Тут появятся данные из QR-кода...</div>
         <button id="copyButton" class="btn-copy"><i class="fas fa-copy"></i> Скопировать всё</button>
@@ -199,6 +226,7 @@
         const copyButton = document.getElementById('copyButton');
         const flashButton = document.getElementById('flashButton');
         const loading = document.getElementById('loading');
+        const highlight = document.getElementById('highlight');
         let scannedData = [];
         let stream = null;
         let track = null;
@@ -247,6 +275,16 @@
                         renderScannedData();
                         loading.style.display = 'none';
                     }
+
+                    // Отображение прямоугольника вокруг QR-кода
+                    const location = code.location;
+                    highlight.style.display = 'block';
+                    highlight.style.left = `${(location.topLeftCorner.x / downscaleFactor)}px`;
+                    highlight.style.top = `${(location.topLeftCorner.y / downscaleFactor)}px`;
+                    highlight.style.width = `${(location.bottomRightCorner.x - location.topLeftCorner.x) / downscaleFactor}px`;
+                    highlight.style.height = `${(location.bottomRightCorner.y - location.topLeftCorner.y) / downscaleFactor}px`;
+                } else {
+                    highlight.style.display = 'none'; // Скрыть прямоугольник, если QR-код не найден
                 }
             }
         }
