@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    <link rel="manifest" href="/manifest.json">
     <title>QR Сканер</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
@@ -25,16 +29,16 @@
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border-radius: 20px;
-            padding: 30px;
+            padding: 20px;
             box-shadow: 0 8px 32px rgba(255, 255, 255, 0.1);
-            max-width: 500px;
+            max-width: 400px;
             width: 100%;
             position: relative;
             overflow: hidden;
         }
 
         h2 {
-            font-size: 2em;
+            font-size: 1.5em;
             margin-bottom: 20px;
             font-weight: 700;
             color: #fff;
@@ -43,7 +47,7 @@
         .video-container {
             position: relative;
             width: 100%;
-            max-width: 400px;
+            aspect-ratio: 4 / 3; /* Соотношение 4:3 */
             margin: 0 auto;
             border-radius: 15px;
             overflow: hidden;
@@ -52,7 +56,9 @@
 
         video {
             width: 100%;
+            height: 100%;
             display: block;
+            object-fit: cover;
         }
 
         #overlay {
@@ -118,11 +124,13 @@
             font-size: 16px;
             font-weight: bold;
             color: #fff;
+            margin: 0;
         }
 
         .scan-buttons {
             display: flex;
             gap: 12px;
+            margin-top: 10px;
         }
 
         button {
@@ -237,6 +245,28 @@
             gap: 20px;
             margin-top: 20px;
         }
+
+        /* Оформление окошка выдачи результата */
+        .result-container {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .result-container h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+            font-weight: 700;
+        }
+
+        .result-container p {
+            margin: 0;
+            font-size: 1em;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body>
@@ -249,7 +279,10 @@
             </div>
         </div>
         <canvas id="canvas" hidden></canvas>
-        <div id="output">Тут появятся данные из QR-кода...</div>
+        <div class="result-container" id="output">
+            <h3>Результат сканирования:</h3>
+            <p>Тут появятся данные из QR-кода...</p>
+        </div>
         <div class="button-container">
             <button id="copyButton" class="btn-copy"><i class="fas fa-copy"></i> Скопировать всё</button>
             <button id="flashButton" class="btn-flash"><i class="fas fa-lightbulb"></i> Включить фонарик</button>
@@ -289,7 +322,7 @@
                 };
             } catch (error) {
                 console.error("Ошибка доступа к камере:", error);
-                output.innerText = "Не удалось получить доступ к камере. Разрешите доступ в настройках.";
+                output.innerHTML = `<h3>Ошибка:</h3><p>Не удалось получить доступ к камере. Разрешите доступ в настройках.</p>`;
             }
         }
 
@@ -335,7 +368,7 @@
         }
 
         function renderScannedData() {
-            output.innerHTML = ""; 
+            output.innerHTML = `<h3>Результат сканирования:</h3>`; 
             scannedData.forEach((item, index) => {
                 const scanItem = document.createElement("div");
                 scanItem.classList.add("scan-item");
