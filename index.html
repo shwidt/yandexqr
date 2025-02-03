@@ -234,7 +234,6 @@
 
         // Настройки для улучшения сканирования
         const scanInterval = 100; // Интервал сканирования в миллисекундах
-        const downscaleFactor = 0.5; // Уменьшение размера изображения для ускорения обработки
 
         async function startCamera() {
             try {
@@ -256,8 +255,8 @@
 
         function scanQRCode() {
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                canvas.width = video.videoWidth * downscaleFactor;
-                canvas.height = video.videoHeight * downscaleFactor;
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
@@ -281,10 +280,13 @@
                     const videoRect = video.getBoundingClientRect();
 
                     // Масштабируем координаты QR-кода под размер видео
-                    highlight.style.left = `${(location.topLeftCorner.x / downscaleFactor) * (videoRect.width / canvas.width)}px`;
-                    highlight.style.top = `${(location.topLeftCorner.y / downscaleFactor) * (videoRect.height / canvas.height)}px`;
-                    highlight.style.width = `${((location.bottomRightCorner.x - location.topLeftCorner.x) / downscaleFactor) * (videoRect.width / canvas.width)}px`;
-                    highlight.style.height = `${((location.bottomRightCorner.y - location.topLeftCorner.y) / downscaleFactor) * (videoRect.height / canvas.height)}px`;
+                    const scaleX = videoRect.width / canvas.width;
+                    const scaleY = videoRect.height / canvas.height;
+
+                    highlight.style.left = `${location.topLeftCorner.x * scaleX}px`;
+                    highlight.style.top = `${location.topLeftCorner.y * scaleY}px`;
+                    highlight.style.width = `${(location.bottomRightCorner.x - location.topLeftCorner.x) * scaleX}px`;
+                    highlight.style.height = `${(location.bottomRightCorner.y - location.topLeftCorner.y) * scaleY}px`;
                     highlight.style.display = 'block';
                 } else {
                     highlight.style.display = 'none'; // Скрыть прямоугольник, если QR-код не найден
