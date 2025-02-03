@@ -278,11 +278,14 @@
 
                     // Отображение прямоугольника вокруг QR-кода
                     const location = code.location;
+                    const videoRect = video.getBoundingClientRect();
+
+                    // Масштабируем координаты QR-кода под размер видео
+                    highlight.style.left = `${(location.topLeftCorner.x / downscaleFactor) * (videoRect.width / canvas.width)}px`;
+                    highlight.style.top = `${(location.topLeftCorner.y / downscaleFactor) * (videoRect.height / canvas.height)}px`;
+                    highlight.style.width = `${((location.bottomRightCorner.x - location.topLeftCorner.x) / downscaleFactor) * (videoRect.width / canvas.width)}px`;
+                    highlight.style.height = `${((location.bottomRightCorner.y - location.topLeftCorner.y) / downscaleFactor) * (videoRect.height / canvas.height)}px`;
                     highlight.style.display = 'block';
-                    highlight.style.left = `${(location.topLeftCorner.x / downscaleFactor)}px`;
-                    highlight.style.top = `${(location.topLeftCorner.y / downscaleFactor)}px`;
-                    highlight.style.width = `${(location.bottomRightCorner.x - location.topLeftCorner.x) / downscaleFactor}px`;
-                    highlight.style.height = `${(location.bottomRightCorner.y - location.topLeftCorner.y) / downscaleFactor}px`;
                 } else {
                     highlight.style.display = 'none'; // Скрыть прямоугольник, если QR-код не найден
                 }
