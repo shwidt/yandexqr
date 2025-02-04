@@ -349,6 +349,11 @@
                         scannedData.push({ value: extractedData, suffix: "" });
                         renderScannedData();
                         loading.style.display = 'none';
+
+                        // Автоматическое копирование результата
+                        navigator.clipboard.writeText(extractedData).then(() => {
+                            console.log("Результат скопирован в буфер обмена!");
+                        });
                     }
 
                     // Отображение прямоугольника вокруг QR-кода
