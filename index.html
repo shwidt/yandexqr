@@ -47,7 +47,7 @@
         .video-container {
             position: relative;
             width: 100%;
-            aspect-ratio: 4 / 3; /* Соотношение 4:3 */
+            aspect-ratio: 3 / 4; /* Соотношение 3:4 */
             margin: 0 auto;
             border-radius: 15px;
             overflow: hidden;
@@ -169,9 +169,7 @@
         }
 
         .prefix-dropdown {
-            position: absolute;
-            top: 40px;
-            left: 0;
+            position: fixed;
             background: rgba(0, 0, 0, 0.9);
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
@@ -383,7 +381,10 @@
                 const addPrefixButton = document.createElement("button");
                 addPrefixButton.classList.add("btn-prefix");
                 addPrefixButton.innerHTML = '<i class="fas fa-tag"></i> Добавить префикс';
-                addPrefixButton.onclick = () => togglePrefixList(index);
+                addPrefixButton.onclick = (e) => {
+                    e.stopPropagation(); // Предотвращаем всплытие события
+                    togglePrefixList(index, e);
+                };
 
                 const deleteButton = document.createElement("button");
                 deleteButton.innerHTML = '<i class="fas fa-trash"></i> Удалить';
@@ -402,7 +403,7 @@
             });
         }
 
-        function togglePrefixList(index) {
+        function togglePrefixList(index, event) {
             const existingDropdown = document.querySelector(".prefix-dropdown.show");
             if (existingDropdown) existingDropdown.classList.remove("show"); // Закрыть предыдущий список
 
@@ -422,8 +423,21 @@
                 dropdown.appendChild(button);
             });
 
-            const scanItem = output.children[index];
-            scanItem.appendChild(dropdown); // Вставляем выпадающее меню в текущий элемент
+            // Позиционируем меню под кнопкой
+            const buttonRect = event.target.getBoundingClientRect();
+            dropdown.style.top = `${buttonRect.bottom + window.scrollY}px`;
+            dropdown.style.left = `${buttonRect.left + window.scrollX}px`;
+
+            document.body.appendChild(dropdown); // Добавляем меню в body
+
+            // Закрытие меню при клике вне его
+            const closeDropdown = (e) => {
+                if (!dropdown.contains(e.target) && e.target !== event.target) {
+                    dropdown.classList.remove("show");
+                    document.removeEventListener("click", closeDropdown);
+                }
+            };
+            document.addEventListener("click", closeDropdown);
         }
 
         copyButton.addEventListener('click', () => {
