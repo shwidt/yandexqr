@@ -430,9 +430,9 @@
                 dropdown.appendChild(button);
             });
 
-            // Позиционируем меню под кнопкой
+            // Позиционируем меню сверху кнопки
             const buttonRect = event.target.getBoundingClientRect();
-            dropdown.style.top = `${buttonRect.bottom + window.scrollY}px`;
+            dropdown.style.top = `${buttonRect.top + window.scrollY - dropdown.offsetHeight - 10}px`; // 10px отступ сверху
             dropdown.style.left = `${buttonRect.left + window.scrollX}px`;
 
             document.body.appendChild(dropdown); // Добавляем меню в body
