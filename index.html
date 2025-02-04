@@ -302,6 +302,7 @@
         let stream = null;
         let track = null;
         let isFlashOn = false;
+        let currentDropdown = null; // Текущее открытое меню
 
         // Настройки для улучшения сканирования
         const scanInterval = 100; // Интервал сканирования в миллисекундах
@@ -404,9 +405,14 @@
         }
 
         function togglePrefixList(index, event) {
-            const existingDropdown = document.querySelector(".prefix-dropdown.show");
-            if (existingDropdown) existingDropdown.classList.remove("show"); // Закрыть предыдущий список
+            // Закрываем текущее меню, если оно уже открыто
+            if (currentDropdown) {
+                currentDropdown.classList.remove("show");
+                currentDropdown = null;
+                return;
+            }
 
+            // Создаем новое меню
             let dropdown = document.createElement("div");
             dropdown.classList.add("prefix-dropdown");
             dropdown.classList.add("show");
@@ -419,6 +425,7 @@
                     scannedData[index].suffix = prefix;
                     renderScannedData();
                     dropdown.classList.remove("show"); // Закрыть выпадающее меню после выбора
+                    currentDropdown = null;
                 };
                 dropdown.appendChild(button);
             });
@@ -429,12 +436,14 @@
             dropdown.style.left = `${buttonRect.left + window.scrollX}px`;
 
             document.body.appendChild(dropdown); // Добавляем меню в body
+            currentDropdown = dropdown; // Сохраняем текущее меню
 
             // Закрытие меню при клике вне его
             const closeDropdown = (e) => {
                 if (!dropdown.contains(e.target) && e.target !== event.target) {
                     dropdown.classList.remove("show");
                     document.removeEventListener("click", closeDropdown);
+                    currentDropdown = null;
                 }
             };
             document.addEventListener("click", closeDropdown);
