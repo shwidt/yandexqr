@@ -432,11 +432,13 @@
             scanItem.appendChild(dropdown); // Вставляем выпадающее меню в текущий элемент
 
             // Закрытие меню при клике вне его
-            document.addEventListener("click", (e) => {
+            const closeMenu = (e) => {
                 if (!dropdown.contains(e.target) && e.target !== button) {
                     dropdown.classList.remove("show");
+                    document.removeEventListener("click", closeMenu);
                 }
-            }, { once: true });
+            };
+            document.addEventListener("click", closeMenu);
         }
 
         copyButton.addEventListener('click', () => {
