@@ -301,6 +301,16 @@
 
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
+        // Фиксация высоты экрана при загрузке страницы
+        function setFixedHeight() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+
+        // Устанавливаем фиксированную высоту при загрузке и изменении размера окна
+        setFixedHeight();
+        window.addEventListener('resize', setFixedHeight);
+
         const video = document.getElementById('camera');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
