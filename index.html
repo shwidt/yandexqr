@@ -12,7 +12,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
         /* Основные стили */
-        body {
+        body, html {
             font-family: 'Roboto', sans-serif;
             margin: 0;
             padding: 0;
@@ -23,6 +23,7 @@
             align-items: center;
             min-height: 100vh;
             text-align: center;
+            overflow: hidden; /* Отключаем скролл */
         }
 
         .container {
@@ -101,6 +102,8 @@
             box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
             text-align: left;
             color: #fff;
+            max-height: 200px;
+            overflow-y: auto; /* Слайд-меню результатов */
         }
 
         .scan-item {
@@ -169,7 +172,7 @@
         }
 
         .prefix-dropdown {
-            position: fixed;
+            position: absolute;
             background: rgba(0, 0, 0, 0.9);
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
@@ -288,6 +291,9 @@
         <div class="loading" id="loading">Сканирование...</div>
     </div>
 
+    <!-- Аудио для звукового сопровождения -->
+    <audio id="scanSound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
+
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
         const video = document.getElementById('camera');
@@ -298,6 +304,7 @@
         const flashButton = document.getElementById('flashButton');
         const loading = document.getElementById('loading');
         const highlight = document.getElementById('highlight');
+        const scanSound = document.getElementById('scanSound'); // Аудио для звукового сопровождения
         let scannedData = [];
         let stream = null;
         let track = null;
@@ -345,6 +352,7 @@
                         scannedData.push({ value: extractedData, suffix: "" });
                         renderScannedData();
                         loading.style.display = 'none';
+                        scanSound.play(); // Воспроизводим звук при успешном сканировании
                     }
 
                     // Отображение прямоугольника вокруг QR-кода
