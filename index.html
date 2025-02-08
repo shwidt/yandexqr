@@ -6,9 +6,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
-    <title>QR Сканер</title>
+    <title>QR Сканер с TensorFlow.js</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
     <style>
         /* Основные стили */
         body, html {
@@ -311,13 +313,29 @@
         let track = null;
         let isFlashOn = false;
         let currentDropdown = null;
+        let model;
 
         // Инициализация ZXing
         const codeReader = new ZXing.BrowserQRCodeReader();
 
+        async function loadModel() {
+            model = await mobilenet.load();
+            console.log("Модель MobileNet загружена.");
+        }
+
+        async function classifyImage(imageElement) {
+            if (!model) {
+                console.error("Модель не загружена.");
+                return;
+            }
+
+            const predictions = await model.classify(imageElement);
+            console.log("Результаты классификации:", predictions);
+            return predictions;
+        }
+
         async function startCamera() {
             try {
-                // Получаем список всех доступных камер
                 const devices = await navigator.mediaDevices.enumerateDevices();
                 const videoDevices = devices.filter(device => device.kind === 'videoinput');
 
@@ -325,7 +343,6 @@
                     throw new Error("Камера не найдена.");
                 }
 
-                // Ищем заднюю камеру
                 let rearCamera = null;
                 for (const device of videoDevices) {
                     if (device.label.toLowerCase().includes("back") || device.label.toLowerCase().includes("rear")) {
@@ -334,10 +351,8 @@
                     }
                 }
 
-                // Если задняя камера не найдена, используем первую доступную
                 const deviceId = rearCamera ? rearCamera.deviceId : videoDevices[0].deviceId;
 
-                // Начинаем сканирование
                 codeReader.decodeFromVideoDevice(deviceId, video, (result, err) => {
                     if (result) {
                         handleScanResult(result.text);
@@ -347,11 +362,10 @@
                     }
                 });
 
-                // Включение фонарика (если поддерживается)
                 stream = await navigator.mediaDevices.getUserMedia({
                     video: {
                         deviceId: { exact: deviceId },
-                        facingMode: { ideal: "environment" } // Предпочитаем заднюю камеру
+                        facingMode: { ideal: "environment" }
                     }
                 });
                 track = stream.getVideoTracks()[0];
@@ -364,18 +378,15 @@
 
         function handleScanResult(data) {
             if (!scannedData.some(item => item.value === data)) {
-                // Проверяем, содержит ли результат "go.yandex"
                 if (data.includes("go.yandex")) {
-                    // Если содержит, извлекаем часть после "="
                     const extractedData = data.split("=")[1] || data;
                     scannedData.push({ value: extractedData, suffix: "" });
                 } else {
-                    // Если не содержит, добавляем сообщение о неверном QR-коде
                     scannedData.push({ value: "Неверный QR-код", suffix: "" });
                 }
                 renderScannedData();
                 loading.style.display = 'none';
-                scanSound.play(); // Воспроизводим звук при успешном сканировании
+                scanSound.play();
             }
         }
 
@@ -476,7 +487,20 @@
             }
         });
 
-        startCamera();
+        async function startCameraWithClassification() {
+            await startCamera();
+            await loadModel();
+
+            setInterval(async () => {
+                const predictions = await classifyImage(video);
+                if (predictions && predictions.length > 0) {
+                    const topPrediction = predictions[0];
+                    output.innerHTML += `<p>Классификация: ${topPrediction.className} (${Math.round(topPrediction.probability * 100)}%)</p>`;
+                }
+            }, 5000); // Классификация каждые 5 секунд
+        }
+
+        startCameraWithClassification();
     </script>
 </body>
 </html>
