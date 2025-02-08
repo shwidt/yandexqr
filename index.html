@@ -283,6 +283,7 @@
                 <div id="highlight"></div>
             </div>
         </div>
+        <canvas id="canvas" hidden></canvas>
         <div class="result-container" id="output">
             <h3>Результат сканирования:</h3>
             <p>Тут появятся данные из QR-кода...</p>
@@ -297,60 +298,98 @@
     <!-- Аудио для звукового сопровождения -->
     <audio id="scanSound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
 
-    <!-- Подключение ZXing -->
-    <script src="https://unpkg.com/@zxing/library@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
+        // Фиксация высоты экрана при загрузке страницы
+        function setFixedHeight() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+
+        // Устанавливаем фиксированную высоту при загрузке и изменении размера окна
+        setFixedHeight();
+        window.addEventListener('resize', setFixedHeight);
+
         const video = document.getElementById('camera');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
         const output = document.getElementById('output');
         const copyButton = document.getElementById('copyButton');
         const flashButton = document.getElementById('flashButton');
         const loading = document.getElementById('loading');
         const highlight = document.getElementById('highlight');
-        const scanSound = document.getElementById('scanSound');
+        const scanSound = document.getElementById('scanSound'); // Аудио для звукового сопровождения
         let scannedData = [];
         let stream = null;
         let track = null;
         let isFlashOn = false;
-        let currentDropdown = null;
+        let currentDropdown = null; // Текущее открытое меню
 
-        // Инициализация ZXing
-        const codeReader = new ZXing.BrowserQRCodeReader();
+        // Настройки для улучшения сканирования
+        const scanInterval = 100; // Интервал сканирования в миллисекундах
 
         async function startCamera() {
             try {
-                // Запуск камеры с использованием ZXing
-                const devices = await ZXing.BrowserCodeReader.listVideoInputDevices();
-                const deviceId = devices[0].deviceId; // Используем первую доступную камеру
-
-                codeReader.decodeFromVideoDevice(deviceId, video, (result, err) => {
-                    if (result) {
-                        handleScanResult(result.text);
-                    }
-                    if (err && !(err instanceof ZXing.NotFoundException)) {
-                        console.error("Ошибка сканирования:", err);
-                    }
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "environment" } 
                 });
-
-                // Включение фонарика (если поддерживается)
-                stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: deviceId } } });
-                track = stream.getVideoTracks()[0];
+                video.srcObject = stream;
+                video.onloadedmetadata = () => {
+                    video.play();
+                    track = stream.getVideoTracks()[0]; 
+                    loading.style.display = 'block';
+                    setInterval(scanQRCode, scanInterval); // Увеличиваем частоту сканирования
+                };
             } catch (error) {
                 console.error("Ошибка доступа к камере:", error);
                 output.innerHTML = `<h3>Ошибка:</h3><p>Не удалось получить доступ к камере. Разрешите доступ в настройках.</p>`;
             }
         }
 
-        function handleScanResult(data) {
-            if (!scannedData.some(item => item.value === data)) {
-                scannedData.push({ value: data, suffix: "" });
-                renderScannedData();
-                loading.style.display = 'none';
-                scanSound.play(); // Воспроизводим звук при успешном сканировании
+        function scanQRCode() {
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+                // Агрессивные настройки для распознавания
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "attemptBoth", // Пробуем инвертировать цвета
+                    greyScaleWeights: { red: 0.2126, green: 0.7152, blue: 0.0722, useIntegerApproximation: false }, // Улучшенная обработка цветов
+                });
+
+                if (code) {
+                    let extractedData = code.data.includes("=") ? code.data.split("=")[1] : code.data; 
+
+                    if (!scannedData.some(item => item.value === extractedData)) {
+                        scannedData.push({ value: extractedData, suffix: "" });
+                        renderScannedData();
+                        loading.style.display = 'none';
+                        scanSound.play(); // Воспроизводим звук при успешном сканировании
+                    }
+
+                    // Отображение прямоугольника вокруг QR-кода
+                    const location = code.location;
+                    const videoRect = video.getBoundingClientRect();
+
+                    // Масштабируем координаты QR-кода под размер видео
+                    const scaleX = videoRect.width / canvas.width;
+                    const scaleY = videoRect.height / canvas.height;
+
+                    highlight.style.left = `${location.topLeftCorner.x * scaleX}px`;
+                    highlight.style.top = `${location.topLeftCorner.y * scaleY}px`;
+                    highlight.style.width = `${(location.bottomRightCorner.x - location.topLeftCorner.x) * scaleX}px`;
+                    highlight.style.height = `${(location.bottomRightCorner.y - location.topLeftCorner.y) * scaleY}px`;
+                    highlight.style.display = 'block';
+                } else {
+                    highlight.style.display = 'none'; // Скрыть прямоугольник, если QR-код не найден
+                }
             }
         }
 
         function renderScannedData() {
-            output.innerHTML = `<h3>Результат сканирования:</h3>`;
+            output.innerHTML = `<h3>Результат сканирования:</h3>`; 
             scannedData.forEach((item, index) => {
                 const scanItem = document.createElement("div");
                 scanItem.classList.add("scan-item");
@@ -366,7 +405,7 @@
                 addPrefixButton.classList.add("btn-prefix");
                 addPrefixButton.innerHTML = '<i class="fas fa-tag"></i> Добавить префикс';
                 addPrefixButton.onclick = (e) => {
-                    e.stopPropagation();
+                    e.stopPropagation(); // Предотвращаем всплытие события
                     togglePrefixList(index, e);
                 };
 
@@ -388,12 +427,14 @@
         }
 
         function togglePrefixList(index, event) {
+            // Закрываем текущее меню, если оно уже открыто
             if (currentDropdown) {
                 currentDropdown.classList.remove("show");
                 currentDropdown = null;
                 return;
             }
 
+            // Создаем новое меню
             let dropdown = document.createElement("div");
             dropdown.classList.add("prefix-dropdown");
             dropdown.classList.add("show");
@@ -405,19 +446,21 @@
                 button.onclick = () => {
                     scannedData[index].suffix = prefix;
                     renderScannedData();
-                    dropdown.classList.remove("show");
+                    dropdown.classList.remove("show"); // Закрыть выпадающее меню после выбора
                     currentDropdown = null;
                 };
                 dropdown.appendChild(button);
             });
 
+            // Позиционируем меню сверху кнопки
             const buttonRect = event.target.getBoundingClientRect();
-            dropdown.style.top = `${buttonRect.top + window.scrollY - dropdown.offsetHeight - 10}px`;
+            dropdown.style.top = `${buttonRect.top + window.scrollY - dropdown.offsetHeight - 10}px`; // 10px отступ сверху
             dropdown.style.left = `${buttonRect.left + window.scrollX}px`;
 
-            document.body.appendChild(dropdown);
-            currentDropdown = dropdown;
+            document.body.appendChild(dropdown); // Добавляем меню в body
+            currentDropdown = dropdown; // Сохраняем текущее меню
 
+            // Закрытие меню при клике вне его
             const closeDropdown = (e) => {
                 if (!dropdown.contains(e.target) && e.target !== event.target) {
                     dropdown.classList.remove("show");
