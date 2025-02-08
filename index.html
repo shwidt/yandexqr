@@ -364,7 +364,15 @@
 
         function handleScanResult(data) {
             if (!scannedData.some(item => item.value === data)) {
-                scannedData.push({ value: data, suffix: "" });
+                // Проверяем, содержит ли результат "go.yandex"
+                if (data.includes("go.yandex")) {
+                    // Если содержит, извлекаем часть после "="
+                    const extractedData = data.split("=")[1] || data;
+                    scannedData.push({ value: extractedData, suffix: "" });
+                } else {
+                    // Если не содержит, добавляем сообщение о неверном QR-коде
+                    scannedData.push({ value: "Неверный QR-код", suffix: "" });
+                }
                 renderScannedData();
                 loading.style.display = 'none';
                 scanSound.play(); // Воспроизводим звук при успешном сканировании
