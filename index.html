@@ -318,10 +318,8 @@
         // Инициализация ZXing
         const codeReader = new ZXing.BrowserQRCodeReader();
 
-        // Временная блокировка для предотвращения дублирования
-        let lastScannedData = null;
-        let lastScanTime = 0;
-        const SCAN_COOLDOWN = 2000; // 2 секунды
+        // Для хранения уникальных значений
+        const uniqueValues = new Set();
 
         async function loadModel() {
             model = await mobilenet.load();
@@ -383,19 +381,10 @@
         }
 
         function handleScanResult(data) {
-            const currentTime = Date.now();
+            // Проверка на дубликаты
+            if (!uniqueValues.has(data)) {
+                uniqueValues.add(data); // Добавляем значение в Set
 
-            // Проверка на дубликаты и временную блокировку
-            if (data === lastScannedData && (currentTime - lastScanTime) < SCAN_COOLDOWN) {
-                return; // Игнорируем повторное сканирование того же QR-кода
-            }
-
-            lastScannedData = data;
-            lastScanTime = currentTime;
-
-            // Проверка на дубликаты в массиве scannedData
-            const isDuplicate = scannedData.some(item => item.value === data);
-            if (!isDuplicate) {
                 if (data.includes("go.yandex")) {
                     const extractedData = data.split("=")[1] || data;
                     scannedData.push({ value: extractedData, suffix: "" });
@@ -434,6 +423,7 @@
                 deleteButton.classList.add("btn-delete");
                 deleteButton.onclick = () => {
                     scannedData.splice(index, 1);
+                    uniqueValues.delete(item.value); // Удаляем значение из Set
                     renderScannedData();
                 };
 
