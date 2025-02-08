@@ -317,7 +317,7 @@
 
         async function startCamera() {
             try {
-                // Получаем доступ к камере
+                // Получаем список всех доступных камер
                 const devices = await navigator.mediaDevices.enumerateDevices();
                 const videoDevices = devices.filter(device => device.kind === 'videoinput');
 
@@ -325,8 +325,17 @@
                     throw new Error("Камера не найдена.");
                 }
 
-                // Используем первую доступную камеру
-                const deviceId = videoDevices[0].deviceId;
+                // Ищем заднюю камеру
+                let rearCamera = null;
+                for (const device of videoDevices) {
+                    if (device.label.toLowerCase().includes("back") || device.label.toLowerCase().includes("rear")) {
+                        rearCamera = device;
+                        break;
+                    }
+                }
+
+                // Если задняя камера не найдена, используем первую доступную
+                const deviceId = rearCamera ? rearCamera.deviceId : videoDevices[0].deviceId;
 
                 // Начинаем сканирование
                 codeReader.decodeFromVideoDevice(deviceId, video, (result, err) => {
@@ -339,8 +348,14 @@
                 });
 
                 // Включение фонарика (если поддерживается)
-                stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: deviceId } } });
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        deviceId: { exact: deviceId },
+                        facingMode: { ideal: "environment" } // Предпочитаем заднюю камеру
+                    }
+                });
                 track = stream.getVideoTracks()[0];
+                video.srcObject = stream;
             } catch (error) {
                 console.error("Ошибка доступа к камере:", error);
                 output.innerHTML = `<h3>Ошибка:</h3><p>Не удалось получить доступ к камере. Разрешите доступ в настройках.</p>`;
