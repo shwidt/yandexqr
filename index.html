@@ -378,7 +378,9 @@
         }
 
         function handleScanResult(data) {
-            if (!scannedData.some(item => item.value === data)) {
+            // Проверка на дубликаты
+            const isDuplicate = scannedData.some(item => item.value === data);
+            if (!isDuplicate) {
                 if (data.includes("go.yandex")) {
                     const extractedData = data.split("=")[1] || data;
                     scannedData.push({ value: extractedData, suffix: "" });
