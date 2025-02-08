@@ -422,8 +422,9 @@
                 deleteButton.innerHTML = '<i class="fas fa-trash"></i> Удалить';
                 deleteButton.classList.add("btn-delete");
                 deleteButton.onclick = () => {
+                    // Удаляем значение из Set и массива
+                    uniqueValues.delete(scannedData[index].value);
                     scannedData.splice(index, 1);
-                    uniqueValues.delete(item.value); // Удаляем значение из Set
                     renderScannedData();
                 };
 
