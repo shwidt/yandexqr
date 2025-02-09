@@ -409,6 +409,11 @@
                 renderScannedData();
                 loading.style.display = 'none';
                 scanSound.play();
+
+                // Вибрация при успешном сканировании
+                if (navigator.vibrate) {
+                    navigator.vibrate(200); // Вибрация на 200 мс
+                }
             }
         }
 
