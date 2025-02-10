@@ -443,9 +443,10 @@
                 deleteButton.classList.add("btn-delete");
                 deleteButton.onclick = () => {
                     // Удаляем значение из Set и массива
-                    uniqueValues.delete(scannedData[index].value);
-                    scannedData.splice(index, 1);
-                    renderScannedData();
+                    uniqueValues.delete(scannedData[index].value); // Удаляем значение из Set
+                    scannedData.splice(index, 1); // Удаляем элемент из массива
+                    lastScannedData = null; // Сбрасываем временную блокировку
+                    renderScannedData(); // Перерисовываем результаты
                 };
 
                 buttonsDiv.appendChild(addPrefixButton);
