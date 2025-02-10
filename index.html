@@ -393,12 +393,11 @@
                 return; // Игнорируем повторное сканирование того же QR-кода
             }
 
-            lastScannedData = data;
-            lastScanTime = currentTime;
-
             // Проверка на дубликаты
             if (!uniqueValues.has(data)) {
                 uniqueValues.add(data); // Добавляем значение в Set
+                lastScannedData = data; // Обновляем последнее отсканированное значение
+                lastScanTime = currentTime; // Обновляем время последнего сканирования
 
                 if (data.includes("go.yandex")) {
                     const extractedData = data.split("=")[1] || data;
