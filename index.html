@@ -321,6 +321,11 @@
         // Для хранения уникальных значений
         const uniqueValues = new Set();
 
+        // Временная блокировка для предотвращения повторного сканирования
+        let lastScannedData = null;
+        let lastScanTime = 0;
+        const SCAN_COOLDOWN = 2000; // 2 секунды
+
         async function loadModel() {
             model = await mobilenet.load();
             console.log("Модель MobileNet загружена.");
@@ -381,6 +386,16 @@
         }
 
         function handleScanResult(data) {
+            const currentTime = Date.now();
+
+            // Проверка на временную блокировку
+            if (data === lastScannedData && (currentTime - lastScanTime) < SCAN_COOLDOWN) {
+                return; // Игнорируем повторное сканирование того же QR-кода
+            }
+
+            lastScannedData = data;
+            lastScanTime = currentTime;
+
             // Проверка на дубликаты
             if (!uniqueValues.has(data)) {
                 uniqueValues.add(data); // Добавляем значение в Set
@@ -428,9 +443,9 @@
                 deleteButton.classList.add("btn-delete");
                 deleteButton.onclick = () => {
                     // Удаляем значение из Set и массива
-                    uniqueValues.delete(scannedData[index].value); // Удаляем значение из Set
-                    scannedData.splice(index, 1); // Удаляем элемент из массива
-                    renderScannedData(); // Перерисовываем результаты
+                    uniqueValues.delete(scannedData[index].value);
+                    scannedData.splice(index, 1);
+                    renderScannedData();
                 };
 
                 buttonsDiv.appendChild(addPrefixButton);
