@@ -122,7 +122,7 @@ video {
 .button-container {
     display: flex;
     flex-wrap: wrap; /* Позволяет кнопкам переноситься на новую строку */
-    justify-content: space-between;
+    justify-content: space-between; /* Распределяем пространство между кнопками */
     gap: 5px; /* Уменьшение отступа между кнопками */
     margin-top: 10px;
 }
@@ -140,7 +140,7 @@ button {
     background: rgba(255, 255, 255, 0.1);
     color: white;
     animation: fadeIn 0.5s ease; /* Анимация появления */
-    flex: 1 1 45%; /* Позволяет кнопкам занимать 45% ширины контейнера */
+    flex: 1 1 30%; /* Позволяет кнопкам занимать 30% ширины контейнера */
     max-width: 150px; /* Устанавливаем максимальную ширину для кнопок */
     box-sizing: border-box; /* Учитываем отступы и границы в ширине */
 }
