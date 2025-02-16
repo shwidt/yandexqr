@@ -2,531 +2,103 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#000000">
-    <title>QR Сканер с TensorFlow.js</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner</title>
     <style>
-        /* Основные стили */
-        body, html {
-            font-family: 'Roboto', sans-serif;
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
             margin: 0;
             padding: 0;
-            background: #000; /* Черный фон */
-            color: #fff;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            text-align: center;
-            overflow: hidden; /* Отключаем скролл */
+            height: 100vh;
         }
 
         .container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
+            background-color: #fff;
             padding: 20px;
-            box-shadow: 0 8px 32px rgba(255, 255, 255, 0.1);
-            max-width: 90vw; /* Адаптивная ширина */
-            width: 100%;
-            max-height: 90vh; /* Ограничиваем высоту контейнера */
-            height: 90vh; /* Фиксированная высота */
-            overflow: hidden; /* Скрываем содержимое, выходящее за пределы */
-            display: flex;
-            flex-direction: column;
-            gap: 10px; /* Уменьшил отступы между элементами */
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
 
-        h2 {
-            font-size: 1.5em;
-            margin-bottom: 10px; /* Уменьшил отступ */
-            font-weight: 700;
-            color: #fff;
+        h1 {
+            margin-bottom: 20px;
         }
 
-        .video-container {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 3 / 4; /* Соотношение 3:4 */
-            margin: 0 auto;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
-            max-height: 50vh; /* Уменьшил высоту окна сканера */
+        .scanner-container {
+            margin-bottom: 20px;
         }
 
         video {
             width: 100%;
-            height: 100%;
-            display: block;
-            object-fit: cover;
-        }
-
-        #overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-
-        #highlight {
-            position: absolute;
-            border: 2px solid #fff;
-            display: none;
+            max-width: 400px;
             border-radius: 10px;
-            animation: scanAnimation 2s infinite linear;
         }
 
-        @keyframes scanAnimation {
-            0% {
-                box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-                opacity: 0;
-            }
-            50% {
-                box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
-                opacity: 1;
-            }
-            100% {
-                box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-                opacity: 0;
-            }
-        }
-
-        #output {
-            margin-top: 10px; /* Уменьшил отступ */
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
-            text-align: left;
-            color: #fff;
-            max-height: 100px; /* Уменьшил высоту окошка выдачи результата */
-            overflow-y: auto; /* Слайд-меню результатов */
-        }
-
-        .scan-item {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 8px;
-            margin: 6px 0;
-            border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(255, 255, 255, 0.1);
-            transition: transform 0.2s;
-        }
-
-        .scan-item:hover {
-            transform: scale(1.02);
-        }
-
-        .scan-text {
-            flex-grow: 1;
-            font-size: 14px; /* Уменьшил размер шрифта */
-            font-weight: bold;
-            color: #fff;
-            margin: 0;
-        }
-
-        .scan-buttons {
-            display: flex;
-            gap: 8px; /* Уменьшил отступ между кнопками */
-            margin-top: 8px;
-        }
-
-        button {
-            padding: 8px 16px; /* Уменьшил размер кнопок */
-            font-size: 12px; /* Уменьшил размер шрифта */
-            cursor: pointer;
-            border: none;
-            border-radius: 8px;
-            transition: background 0.3s ease, transform 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        button:hover {
-            transform: scale(1.05);
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-copy {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .btn-flash {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .btn-delete {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .btn-prefix {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .prefix-dropdown {
-            position: absolute;
-            background: rgba(0, 0, 0, 0.9);
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
-            padding: 8px;
-            width: 140px; /* Уменьшил ширину меню */
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-            z-index: 100;
-        }
-
-        .prefix-dropdown.show {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .prefix-dropdown button {
-            width: 100%;
-            padding: 6px;
-            margin-bottom: 6px;
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            text-align: left;
-            font-size: 12px; /* Уменьшил размер шрифта */
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-
-        .prefix-dropdown button:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .loading {
-            display: none;
-            font-size: 1em; /* Уменьшил размер шрифта */
-            margin-top: 10px;
-            color: #fff;
-        }
-
-        .loading::after {
-            content: '';
-            display: inline-block;
-            width: 1em;
-            height: 1em;
-            border: 2px solid #fff;
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Анимация появления */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .container {
-            animation: fadeIn 0.5s ease;
-        }
-
-        /* Кнопки на одном уровне */
-        .button-container {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px; /* Уменьшил отступ между кнопками */
-            margin-top: 10px;
-        }
-
-        /* Оформление окошка выдачи результата */
         .result-container {
-            margin-top: 10px;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
-            color: #fff;
+            margin-top: 20px;
         }
 
-        .result-container h3 {
-            margin: 0 0 8px 0;
-            font-size: 1.1em; /* Уменьшил размер шрифта */
-            font-weight: 700;
-        }
-
-        .result-container p {
-            margin: 0;
-            font-size: 0.9em; /* Уменьшил размер шрифта */
-            line-height: 1.4;
+        #qr-result {
+            font-size: 1.2em;
+            color: #333;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="video-container">
-            <video id="camera" autoplay playsinline></video>
-            <div id="overlay">
-                <div id="highlight"></div>
-            </div>
+        <h1>QR Code Scanner</h1>
+        <div class="scanner-container">
+            <video id="qr-video" autoplay playsinline></video>
         </div>
-        <div class="result-container" id="output">
-            <h3>Результат сканирования:</h3>
-            <p>Тут появятся данные из QR-кода...</p>
+        <div class="result-container">
+            <h2>Результат:</h2>
+            <p id="qr-result">Здесь будет отображен результат сканирования...</p>
         </div>
-        <div class="button-container">
-            <button id="copyButton" class="btn-copy"><i class="fas fa-copy"></i> Скопировать всё</button>
-            <button id="flashButton" class="btn-flash"><i class="fas fa-lightbulb"></i> Включить фонарик</button>
-        </div>
-        <div class="loading" id="loading">Сканирование...</div>
     </div>
-
-    <!-- Аудио для звукового сопровождения -->
-    <audio id="scanSound" src="beep-07.wav" preload="auto"></audio>
-
-    <!-- Подключение ZXing -->
-    <script src="https://unpkg.com/@zxing/library@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/barcode_reader/barcode_reader.js" crossorigin="anonymous"></script>
     <script>
-        const video = document.getElementById('camera');
-        const output = document.getElementById('output');
-        const copyButton = document.getElementById('copyButton');
-        const flashButton = document.getElementById('flashButton');
-        const loading = document.getElementById('loading');
-        const highlight = document.getElementById('highlight');
-        const scanSound = document.getElementById('scanSound');
-        let scannedData = [];
-        let stream = null;
-        let track = null;
-        let isFlashOn = false;
-        let currentDropdown = null;
-        let model;
+        const video = document.getElementById('qr-video');
+        const qrResult = document.getElementById('qr-result');
 
-        // Инициализация ZXing
-        const codeReader = new ZXing.BrowserQRCodeReader();
-
-        // Для хранения уникальных значений
-        const uniqueValues = new Set();
-
-        // Временная блокировка для предотвращения повторного сканирования
-        let lastScannedData = null;
-        let lastScanTime = 0;
-        const SCAN_COOLDOWN = 2000; // 2 секунды
-
-        async function loadModel() {
-            model = await mobilenet.load();
-            console.log("Модель MobileNet загружена.");
-        }
-
-        async function classifyImage(imageElement) {
-            if (!model) {
-                console.error("Модель не загружена.");
-                return;
+        const barcodeReader = new BarcodeReader({
+            locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/barcode_reader/${file}`;
             }
+        });
 
-            const predictions = await model.classify(imageElement);
-            console.log("Результаты классификации:", predictions);
-            return predictions;
-        }
+        barcodeReader.setOptions({
+            input: 'video',
+            barcodeFormats: 'QR_CODE'
+        });
 
-        async function startCamera() {
+        barcodeReader.onResults((results) => {
+            if (results.barcodes.length > 0) {
+                const result = results.barcodes[0].rawValue;
+                qrResult.textContent = result;
+            } else {
+                qrResult.textContent = 'QR-код не распознан';
+            }
+        });
+
+        const startScanner = async () => {
             try {
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                const videoDevices = devices.filter(device => device.kind === 'videoinput');
-
-                if (videoDevices.length === 0) {
-                    throw new Error("Камера не найдена.");
-                }
-
-                let rearCamera = null;
-                for (const device of videoDevices) {
-                    if (device.label.toLowerCase().includes("back") || device.label.toLowerCase().includes("rear")) {
-                        rearCamera = device;
-                        break;
-                    }
-                }
-
-                const deviceId = rearCamera ? rearCamera.deviceId : videoDevices[0].deviceId;
-
-                // Увеличиваем частоту сканирования
-                codeReader.decodeFromVideoDevice(deviceId, video, (result, err) => {
-                    if (result) {
-                        handleScanResult(result.text);
-                    }
-                    if (err && !(err instanceof ZXing.NotFoundException)) {
-                        console.error("Ошибка сканирования:", err);
-                    }
-                });
-
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        deviceId: { exact: deviceId },
-                        facingMode: { ideal: "environment" }
-                    }
-                });
-                track = stream.getVideoTracks()[0];
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 video.srcObject = stream;
+                await barcodeReader.start();
             } catch (error) {
-                console.error("Ошибка доступа к камере:", error);
-                output.innerHTML = `<h3>Ошибка:</h3><p>Не удалось получить доступ к камере. Разрешите доступ в настройках.</p>`;
+                console.error('Ошибка доступа к камере:', error);
+                qrResult.textContent = 'Ошибка доступа к камере';
             }
-        }
+        };
 
-        function handleScanResult(data) {
-            const currentTime = Date.now();
-
-            // Проверка на временную блокировку
-            if (data === lastScannedData && (currentTime - lastScanTime) < SCAN_COOLDOWN) {
-                return; // Игнорируем повторное сканирование того же QR-кода
-            }
-
-            lastScannedData = data;
-            lastScanTime = currentTime;
-
-            // Проверка на дубликаты
-            if (!uniqueValues.has(data)) {
-                uniqueValues.add(data); // Добавляем значение в Set
-
-                if (data.includes("go.yandex")) {
-                    const extractedData = data.split("=")[1] || data;
-                    scannedData.push({ value: extractedData, suffix: "" });
-                } else {
-                    scannedData.push({ value: "Неверный QR-код", suffix: "" });
-                }
-                renderScannedData();
-                loading.style.display = 'none';
-                scanSound.play();
-
-                // Вибрация при успешном сканировании
-                if (navigator.vibrate) {
-                    navigator.vibrate(200); // Вибрация на 200 мс
-                }
-            }
-        }
-
-        function renderScannedData() {
-            output.innerHTML = `<h3>Результат сканирования:</h3>`;
-            scannedData.forEach((item, index) => {
-                const scanItem = document.createElement("div");
-                scanItem.classList.add("scan-item");
-
-                const text = document.createElement("span");
-                text.classList.add("scan-text");
-                text.textContent = item.suffix ? `${item.value} ${item.suffix}` : item.value;
-
-                const buttonsDiv = document.createElement("div");
-                buttonsDiv.classList.add("scan-buttons");
-
-                const addPrefixButton = document.createElement("button");
-                addPrefixButton.classList.add("btn-prefix");
-                addPrefixButton.innerHTML = '<i class="fas fa-tag"></i> Добавить префикс';
-                addPrefixButton.onclick = (e) => {
-                    e.stopPropagation();
-                    togglePrefixList(index, e);
-                };
-
-                const deleteButton = document.createElement("button");
-                deleteButton.innerHTML = '<i class="fas fa-trash"></i> Удалить';
-                deleteButton.classList.add("btn-delete");
-                deleteButton.onclick = () => {
-                    // Удаляем значение из Set и массива
-                    uniqueValues.delete(scannedData[index].value);
-                    scannedData.splice(index, 1);
-                    renderScannedData();
-                };
-
-                buttonsDiv.appendChild(addPrefixButton);
-                buttonsDiv.appendChild(deleteButton);
-
-                scanItem.appendChild(text);
-                scanItem.appendChild(buttonsDiv);
-                output.appendChild(scanItem);
-            });
-        }
-
-        function togglePrefixList(index, event) {
-            if (currentDropdown) {
-                currentDropdown.classList.remove("show");
-                currentDropdown = null;
-                return;
-            }
-
-            let dropdown = document.createElement("div");
-            dropdown.classList.add("prefix-dropdown");
-            dropdown.classList.add("show");
-
-            const prefixes = ["Рел", "Раскладушка", "Труп", "Грязный"];
-            prefixes.forEach(prefix => {
-                const button = document.createElement("button");
-                button.textContent = prefix;
-                button.onclick = () => {
-                    scannedData[index].suffix = prefix;
-                    renderScannedData();
-                    dropdown.classList.remove("show");
-                    currentDropdown = null;
-                };
-                dropdown.appendChild(button);
-            });
-
-            const buttonRect = event.target.getBoundingClientRect();
-            dropdown.style.top = `${buttonRect.top + window.scrollY - dropdown.offsetHeight - 10}px`;
-            dropdown.style.left = `${buttonRect.left + window.scrollX}px`;
-
-            document.body.appendChild(dropdown);
-            currentDropdown = dropdown;
-
-            const closeDropdown = (e) => {
-                if (!dropdown.contains(e.target) && e.target !== event.target) {
-                    dropdown.classList.remove("show");
-                    document.removeEventListener("click", closeDropdown);
-                    currentDropdown = null;
-                }
-            };
-            document.addEventListener("click", closeDropdown);
-        }
-
-        copyButton.addEventListener('click', () => {
-            const textToCopy = scannedData.map(item => item.suffix ? `${item.value} ${item.suffix}` : item.value).join("\n");
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                alert("Данные скопированы!");
-            });
-        });
-
-        flashButton.addEventListener('click', async () => {
-            if (!track) return alert("Фонарик не поддерживается на этом устройстве.");
-            try {
-                isFlashOn = !isFlashOn;
-                await track.applyConstraints({ advanced: [{ torch: isFlashOn }] });
-                flashButton.innerHTML = isFlashOn ? '<i class="fas fa-lightbulb"></i> Выключить фонарик' : '<i class="fas fa-lightbulb"></i> Включить фонарик';
-            } catch {
-                alert("Ошибка управления фонариком.");
-            }
-        });
-
-        async function startCameraWithClassification() {
-            await startCamera();
-            await loadModel();
-
-            // Классификация выполняется, но результаты не отображаются
-            setInterval(async () => {
-                await classifyImage(video);
-            }, 5000); // Классификация каждые 5 секунд
-        }
-
-        startCameraWithClassification();
+        startScanner();
     </script>
 </body>
 </html>
