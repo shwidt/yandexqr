@@ -145,9 +145,25 @@ button {
     box-sizing: border-box; /* Учитываем отступы и границы в ширине */
 }
 
-button:hover {
-    transform: scale(1.05);
-    background: rgba(255, 255, 255, 0.2);
+.btn-capture {
+    background: linear-gradient(90deg, #ff4081, #ff6f20); /* Градиентный фон */
+    color: white; /* Цвет текста */
+    padding: 12px 24px; /* Увеличенные отступы для большей кнопки */
+    font-size: 16px; /* Увеличенный размер шрифта */
+    border-radius: 10px; /* Закругленные углы */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Тень для глубины */
+    transition: background 0.3s ease, transform 0.2s ease; /* Плавные переходы */
+    flex: 1 1 100%; /* Занимает 100% ширины на мобильных */
+    margin-top: 10px; /* Отступ сверху */
+}
+
+.btn-capture:hover {
+    background: linear-gradient(90deg, #ff6f20, #ff4081); /* Изменение градиента при наведении */
+    transform: scale(1.05); /* Увеличение кнопки при наведении */
+}
+
+.btn-capture:active {
+    transform: scale(0.95); /* Уменьшение кнопки при нажатии */
 }
 
 @keyframes fadeIn {
