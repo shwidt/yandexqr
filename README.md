@@ -1,5 +1,4 @@
 <div align="center">
-  <img src="https://user-images.githubusercontent.com/your-logo.png" width="100" alt="YandexQR Logo">
   <h1>YandexQR 📱</h1>
   <p>Сканер QR-кодов для самокатов яндекса, написанный на HTML, CSS и JavaScript. ПОМОЩНИК ДЛЯ ЛЮБОГО СКАУТА</p>
   <img src="https://img.shields.io/badge/HTML-5-orange.svg" alt="HTML">
