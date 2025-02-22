@@ -3,8 +3,8 @@ body, html {
     font-family: 'Roboto', sans-serif;
     margin: 0;
     padding: 0;
-    background: #1a1a1a; /* Статический фон */
-    color: #fff;
+    background: #ffffff; /* Белый фон */
+    color: #000000; /* Черный текст */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -14,15 +14,14 @@ body, html {
 }
 
 .container {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
+    background: #f0f0f0; /* Светло-серый фон для контейнера */
     border-radius: 20px;
     padding: 20px;
-    box-shadow: 0 8px 32px rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Легкая тень */
     max-width: 90vw; /* Адаптивная ширина */
     width: 100%;
     max-height: 90vh; /* Ограничиваем высоту контейнера */
-    height: 90vh; /* Фиксированная высота */
+    height: auto; /* Автоматическая высота */
     overflow: hidden; /* Скрываем содержимое, выходящее за пределы */
     display: flex;
     flex-direction: column;
@@ -33,7 +32,7 @@ h2 {
     font-size: 1.5em;
     margin-bottom: 10px; /* Уменьшил отступ */
     font-weight: 700;
-    color: #fff;
+    color: #333333; /* Темно-серый цвет заголовка */
 }
 
 .video-container {
@@ -43,8 +42,7 @@ h2 {
     margin: 0 auto;
     border-radius: 15px;
     overflow: hidden;
-    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
-    max-height: 50vh; /* Уменьшил высоту окна сканера */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Более выраженная тень */
 }
 
 video {
@@ -89,21 +87,21 @@ video {
 #output {
     margin-top: 10px; /* Уменьшил отступ */
     padding: 15px; /* Увеличил отступ для лучшего восприятия */
-    background: rgba(255, 255, 255, 0.1);
+    background: #ffffff; /* Белый фон для вывода */
     border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Добавил тень для глубины */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Легкая тень */
     text-align: left;
-    color: #fff;
+    color: #000; /* Черный текст */
     max-height: 150px; /* Увеличил высоту окошка выдачи результата */
     overflow-y: auto; /* Слайд-меню результатов */
     transition: background 0.3s ease; /* Плавный переход фона */
-    border: 1px solid rgba(255, 255, 255, 0.2); /* Добавил границу */
+    border: 1px solid rgba(0, 0, 0, 0.1); /* Добавил границу */
 }
 
 #output h3 {
     font-size: 1.5em; /* Увеличил размер заголовка */
     margin-bottom: 10px; /* Отступ снизу */
-    color: #ffcc00; /* Цвет заголовка */
+    color: #000000; /* Цвет заголовка */
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Тень для заголовка */
 }
 
@@ -137,12 +135,16 @@ button {
     display: flex;
     align-items: center;
     gap: 6px;
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
+    background-color: #000000; /* Черная кнопка */
+    color: #ffffff; /* Белый текст на кнопке */
     animation: fadeIn 0.5s ease; /* Анимация появления */
     flex: 1 1 30%; /* Позволяет кнопкам занимать 30% ширины контейнера */
     max-width: 150px; /* Устанавливаем максимальную ширину для кнопок */
     box-sizing: border-box; /* Учитываем отступы и границы в ширине */
+}
+
+button:hover {
+    background-color: #444444; /* Темно-серый фон при наведении */
 }
 
 .btn-capture {
@@ -227,4 +229,12 @@ button {
     justify-content: space-between; /* Распределяем пространство между кнопками */
     width: 100%; /* Задаем ширину для контейнера кнопок */
     gap: 5px; /* Уменьшение отступа между кнопками */
+}
+
+h1, h3, h4, h5, h6 {
+    color: #000000; /* Черный цвет заголовков */
+}
+
+a {
+    color: #000000; /* Черные ссылки */
 }
