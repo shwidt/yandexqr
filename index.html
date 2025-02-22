@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    <title>QR Сканер</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="video-container">
+            <video id="camera" autoplay playsinline></video>
+            <div id="overlay">
+                <div id="highlight"></div>
+            </div>
+        </div>
+        <div class="result-container" id="output">
+            <h3>Результат сканирования:</h3>
+            <p>Тут появятся данные из QR-кода...</p>
+        </div>
+        <div class="button-container">
+            <button id="copyButton" class="btn-copy"><i class="fas fa-copy"></i> Скопировать всё</button>
+            <button id="flashButton" class="btn-flash"><i class="fas fa-lightbulb"></i> Включить фонарик</button>
+        </div>
+        <div id="photoInfo" class="photo-info"></div>
+        <div class="loading" id="loading">Сканирование...</div>
+    </div>
+
+    <audio id="scanSound" src="beep-07.wav" preload="auto"></audio>
+
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
+    <script src="script.js"></script>
+</body>
+</html>
