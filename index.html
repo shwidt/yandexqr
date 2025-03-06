@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    <title>Multi QR Scanner</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-dark">
+    <div class="container-fluid py-4">
+        <div class="row">
+            <!-- Scanner Column -->
+            <div class="col-md-6">
+                <div class="card shadow-lg mb-4 bg-dark text-light border-light">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">
+                            <i class="fas fa-qrcode me-2"></i>QR Scanner
+                        </h3>
+                        <button id="clear-all" class="btn btn-outline-light btn-sm">
+                            <i class="fas fa-trash me-1"></i>Clear All
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-3" id="instructions">
+                            <p class="lead mb-1">Point your camera at QR codes</p>
+                            <small class="text-muted d-block">You can scan multiple codes simultaneously</small>
+                        </div>
+
+                        <div class="scanner-container mb-3">
+                            <video id="video" playsinline></video>
+                            <canvas id="canvas" class="d-none"></canvas>
+                        </div>
+
+                        <div id="file-upload-container" class="text-center mb-3 d-none border-light">
+                            <p class="mb-2">Or upload images with QR codes:</p>
+                            <div class="d-grid">
+                                <label for="qr-file-input" class="btn btn-outline-light">
+                                    <i class="fas fa-upload me-2"></i>Select Images
+                                </label>
+                                <input type="file" id="qr-file-input" class="d-none" accept="image/*" multiple>
+                            </div>
+                        </div>
+
+                        <div id="camera-error" class="alert alert-light border-light d-none">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <span>Failed to access camera.</span>
+                            <hr>
+                            <small class="d-block">
+                                Tips:
+                                <ul class="mb-0 mt-1">
+                                    <li>Check camera permissions</li>
+                                    <li>Try uploading images</li>
+                                    <li>Use a mobile device with a camera</li>
+                                </ul>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Column -->
+            <div class="col-md-6">
+                <div class="card shadow-lg bg-dark text-light border-light">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">
+                            <i class="fas fa-list me-2"></i>Scanned Codes
+                            <span id="codes-count" class="badge bg-light text-dark">0</span>
+                        </h3>
+                        <div class="d-flex">
+                            <button id="flashlight" class="btn btn-outline-light btn-sm me-2" title="Flashlight">
+                                <i class="fas fa-bolt me-1"></i>Flashlight
+                            </button>
+                            <button id="copy-all" class="btn btn-outline-light btn-sm" disabled>
+                                <i class="fas fa-copy me-1"></i>Copy All
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-0 results-container">
+                        <div id="no-results" class="text-center text-muted p-4">
+                            <i class="fas fa-inbox fa-2x mb-2"></i>
+                            <p>No QR codes scanned yet</p>
+                        </div>
+                        <div id="results-list" class="list-group list-group-flush bg-dark scrollable-results">
+                            <!-- Results will be added here dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- ZXing Library -->
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
+    <!-- Custom JS -->
+    <script src="script.js"></script>
+</body>
+</html>
