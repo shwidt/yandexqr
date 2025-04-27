@@ -1,0 +1,618 @@
+/* Основные стили */
+body, html {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #1a1a1a; /* Статический фон */
+    color: #fff;
+    height: 100%;
+    overflow: auto; /* Возвращаем возможность прокрутки */
+}
+
+.container-fluid {
+    padding: 1.5rem;
+}
+
+.row {
+    /* Удаляем фиксированные размеры */
+}
+
+/* Фиксированная колонка сканера */
+.scanner-column {
+    /* Пустые стили, которые перезаписывают предыдущие значения */
+}
+
+/* Колонка результатов с прокруткой только внутри контейнера */
+.results-column {
+    /* Пустые стили, которые перезаписывают предыдущие значения */
+}
+
+.card {
+    /* Без фиксированной высоты */
+}
+
+.card-body {
+    /* Без фиксированной высоты */
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(255, 255, 255, 0.1);
+    max-width: 90vw; /* Адаптивная ширина */
+    width: 100%;
+    max-height: 90vh; /* Ограничиваем высоту контейнера */
+    height: 90vh; /* Фиксированная высота */
+    overflow: hidden; /* Скрываем содержимое, выходящее за пределы */
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Уменьшил отступы между элементами */
+}
+
+h2 {
+    font-size: 1.5em;
+    margin-bottom: 10px; /* Уменьшил отступ */
+    font-weight: 700;
+    color: #fff;
+}
+
+.video-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4; /* Соотношение 3:4 */
+    margin: 0 auto;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+    max-height: 50vh; /* Уменьшил высоту окна сканера */
+}
+
+video {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+#overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+#highlight {
+    position: absolute;
+    border: 2px solid #fff;
+    display: none;
+    border-radius: 10px;
+    animation: scanAnimation 2s infinite linear;
+}
+
+@keyframes scanAnimation {
+    0% {
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        opacity: 0;
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+        opacity: 1;
+    }
+    100% {
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        opacity: 0;
+    }
+}
+
+#output {
+    margin-top: 10px; /* Уменьшил отступ */
+    padding: 15px; /* Увеличил отступ для лучшего восприятия */
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Добавил тень для глубины */
+    text-align: left;
+    color: #fff;
+    max-height: 150px; /* Увеличил высоту окошка выдачи результата */
+    overflow-y: auto; /* Слайд-меню результатов */
+    transition: background 0.3s ease; /* Плавный переход фона */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Добавил границу */
+}
+
+#output h3 {
+    font-size: 1.5em; /* Увеличил размер заголовка */
+    margin-bottom: 10px; /* Отступ снизу */
+    color: #ffcc00; /* Цвет заголовка */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Тень для заголовка */
+}
+
+#output p {
+    margin: 5px 0; /* Отступы между параграфами */
+    font-size: 1.1em; /* Увеличил размер шрифта для текста */
+    line-height: 1.5; /* Увеличил межстрочный интервал */
+}
+
+/* Добавим эффект при наведении на результаты */
+#output:hover {
+    background: rgba(255, 255, 255, 0.2); /* Изменение фона при наведении */
+    border-color: rgba(255, 255, 255, 0.5); /* Изменение цвета границы при наведении */
+}
+
+.button-container {
+    display: flex;
+    flex-wrap: wrap; /* Позволяет кнопкам переноситься на новую строку */
+    justify-content: space-between; /* Распределяем пространство между кнопками */
+    gap: 5px; /* Уменьшение отступа между кнопками */
+    margin-top: 10px;
+}
+
+button {
+    padding: 10px 20px; /* Увеличил размер кнопок */
+    font-size: 14px; /* Увеличил размер шрифта */
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    transition: background 0.3s ease, transform 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    animation: fadeIn 0.5s ease; /* Анимация появления */
+    flex: 1 1 30%; /* Позволяет кнопкам занимать 30% ширины контейнера */
+    max-width: 150px; /* Устанавливаем максимальную ширину для кнопок */
+    box-sizing: border-box; /* Учитываем отступы и границы в ширине */
+}
+
+.btn-capture {
+    background: linear-gradient(90deg, #ff4081, #ff6f20); /* Градиентный фон */
+    color: white; /* Цвет текста */
+    padding: 12px 24px; /* Увеличенные отступы для большей кнопки */
+    font-size: 16px; /* Увеличенный размер шрифта */
+    border-radius: 10px; /* Закругленные углы */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Тень для глубины */
+    transition: background 0.3s ease, transform 0.2s ease; /* Плавные переходы */
+    flex: 1 1 100%; /* Занимает 100% ширины на мобильных */
+    margin-top: 10px; /* Отступ сверху */
+}
+
+.btn-capture:hover {
+    background: linear-gradient(90deg, #ff6f20, #ff4081); /* Изменение градиента при наведении */
+    transform: scale(1.05); /* Увеличение кнопки при наведении */
+}
+
+.btn-capture:active {
+    transform: scale(0.95); /* Уменьшение кнопки при нажатии */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Адаптивные стили для мобильных устройств */
+@media (max-width: 600px) {
+    button {
+        font-size: 12px; /* Уменьшение размера шрифта на мобильных */
+        padding: 8px 16px; /* Уменьшение размера кнопок на мобильных */
+        flex: 1 1 100%; /* Кнопки занимают 100% ширины на мобильных */
+    }
+
+    .container {
+        padding: 10px; /* Уменьшение отступов на мобильных */
+    }
+}
+
+/* Остальные стили остаются без изменений */
+
+.prefix-dropdown {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+    padding: 8px;
+    width: 140px; /* Ширина меню */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 100;
+}
+
+.prefix-dropdown.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.prefix-dropdown button {
+    width: 100%;
+    padding: 6px;
+    margin-bottom: 6px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    text-align: left;
+    font-size: 12px; /* Уменьшил размер шрифта */
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.prefix-dropdown button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.scan-buttons {
+    display: flex; /* Используем Flexbox для горизонтального расположения */
+    justify-content: space-between; /* Распределяем пространство между кнопками */
+    width: 100%; /* Задаем ширину для контейнера кнопок */
+    gap: 5px; /* Уменьшение отступа между кнопками */
+}
+
+/* Scanner Container Styles */
+.scanner-container {
+    position: relative;
+    max-width: 100%;
+    width: 640px; /* Фиксированная ширина */
+    height: 250px; /* Фиксированная высота */
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 10px;
+    background-color: #000;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.scanner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+#video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+}
+
+/* Стили для настройки экспозиции */
+#exposure-control {
+    background-color: rgba(0, 0, 0, 0.4);
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#exposure-value {
+    font-family: monospace;
+    font-weight: bold;
+    padding: 2px 6px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.form-range::-webkit-slider-thumb {
+    background: #fff;
+}
+
+.form-range::-moz-range-thumb {
+    background: #fff;
+}
+
+/* Card Styles */
+.card {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1rem 1.25rem;
+}
+
+/* Results List Styles */
+.list-group-item {
+    background-color: transparent !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    padding: 12px 15px;
+    transition: background-color 0.2s ease;
+    color: white;
+    display: flex;
+    align-items: center;
+}
+
+.list-group-item:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.list-group-item .text-truncate {
+    max-width: 70%; /* Уменьшаем максимальную ширину текста, чтобы дать больше места кнопкам */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Стили для кнопок в результатах */
+.list-group-item .d-flex {
+    width: 100%;
+}
+
+.list-group-item .btn-group {
+    margin-left: auto;
+    display: flex;
+    gap: 5px;
+}
+
+.list-group-item .btn {
+    padding: 4px 8px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Добавляем прокрутку для контейнера результатов */
+#results-list {
+    max-height: 400px; /* Возвращаем прежнюю высоту */
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
+    width: 100%;
+}
+
+/* Стилизация полосы прокрутки для WebKit (Chrome, Safari) */
+#results-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+#results-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+#results-list::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+    height: 50px; /* Задаем высоту ползунка */
+}
+
+#results-list::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Адаптивная высота для мобильных устройств */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 15px !important;
+    }
+    
+    .row {
+        /* Возвращаем стандартное отображение Bootstrap */
+    }
+    
+    .scanner-column, .results-column {
+        /* Убираем фиксированную высоту */
+    }
+    
+    .card {
+        margin-bottom: 1rem !important;
+    }
+    
+    #results-list {
+        max-height: 300px;
+    }
+    
+    .list-group-item {
+        padding: 10px 12px;
+    }
+    
+    .list-group-item .text-truncate {
+        max-width: 60%;
+    }
+    
+    .list-group-item .btn {
+        padding: 3px 6px;
+    }
+}
+
+/* Animation Styles */
+.fade-in {
+    animation: fadeIn 0.2s ease-in;
+}
+
+.slide-in {
+    animation: slideIn 0.3s ease-out;
+}
+
+.fade-out {
+    animation: fadeOut 0.2s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Button Styles */
+.btn {
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+}
+
+.btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+/* File Upload Styles */
+#file-upload-container {
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+#file-upload-container:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.alert {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+/* Dark Theme Overrides */
+.bg-dark {
+    background-color: #1a1a1a !important;
+}
+
+.text-muted {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Utility Classes */
+.text-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .scanner-container {
+        width: 100%;
+        height: 0;
+        padding-bottom: 75%; /* Соотношение сторон 4:3 */
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .btn {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.8rem;
+    }
+}
+
+/* Стили для контейнера карточки с результатами */
+.card-body.p-0.results-container {
+    max-height: none;
+    display: flex;
+    flex-direction: column;
+}
+
+.scrollable-results {
+    flex-grow: 1;
+}
+
+#no-results {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: static;
+    transform: none;
+    pointer-events: auto;
+}
+
+/* Стили для кнопки фонарика */
+#flashlight {
+    transition: all 0.3s ease;
+    min-width: 105px; /* Для соответствия Copy All */
+}
+
+#flashlight.disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    pointer-events: auto; /* Сохраняем возможность кликнуть */
+}
+
+#flashlight.btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+}
+
+#flashlight.btn-warning:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+}
+
+/* Анимация при включении фонарика */
+@keyframes flashAnimation {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+#flashlight.btn-warning i {
+    animation: flashAnimation 0.3s ease;
+}
+
+/* Обеспечиваем согласованность для кнопок в хедере */
+.card-header .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.2rem;
+}
